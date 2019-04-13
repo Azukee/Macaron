@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="A:\New folder (5)\ArchiveUnpacker\ArchiveUnpacker" t="IncludeFlat">
+      <e p="ArchiveUnpacker" t="IncludeRecursive">
+        <e p="ArchiveUnpacker.csproj" t="IncludeRecursive" />
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="EncryptionSchemes" t="Include">
+          <e p="Blowfish.cs" t="Include" />
+        </e>
+        <e p="Framework" t="Include">
+          <e p="Exceptions" t="Include">
+            <e p="InvalidMagicException.cs" t="Include" />
+          </e>
+          <e p="FileType.cs" t="Include" />
+          <e p="IExtractableFile.cs" t="Include" />
+          <e p="IUnpacker.cs" t="Include" />
+          <e p="UnpackerRegistry.cs" t="Include" />
+        </e>
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Debug" t="Include">
+            <e p="net472" t="Include">
+              <e p="ArchiveUnpacker.AssemblyInfo.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="Program.cs" t="Include" />
+        <e p="testDirs" t="Include" />
+        <e p="Unpackers" t="Include">
+          <e p="AIMSUnpacker.cs" t="Include" />
+          <e p="ArtemisUnpacker.cs" t="Include" />
+        </e>
+      </e>
+      <e p="ArchiveUnpacker.sln" t="IncludeFlat" />
+      <e p="packages" t="ExcludeRecursive" />
+    </e>
+    <e p="C:\Users\Chocola\.Rider2018.2\config\extensions" t="IncludeRecursive" />
+    <e p="C:\Users\Chocola\.Rider2018.2\system\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\Chocola\.Rider2018.2\system\resharper-host\local\Transient\ReSharperHost\v182\SolutionCaches\_ArchiveUnpacker.644042928.00" t="ExcludeRecursive" />
+  </component>
+</project>

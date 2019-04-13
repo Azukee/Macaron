@@ -16,7 +16,7 @@ namespace ArchiveUnpacker.Unpackers
     /// <summary>
     /// Unpacks files from VNs created using the Ren'Py engine.
     ///
-    /// Tested on renpy v6.99.3.
+    /// Tested on renpy v6.99.3 and v6.99.14.3.
     /// </summary>
     internal class RenPyUnpacker : IUnpacker
     {
@@ -45,8 +45,8 @@ namespace ArchiveUnpacker.Unpackers
 
                     foreach (var o in dic) {
                         var val = (object[])((List<object>)o.Value)[0];
-                        long v1 = (long)val[0] ^ key;
-                        uint v2 = (uint)((int)val[1] ^ key);
+                        long v1 = Convert.ToInt64(val[0]) ^ key;
+                        uint v2 = (uint)(Convert.ToInt64(val[1]) ^ key);
                         var v3 = (string)val[2];
                         if (!string.IsNullOrEmpty(v3))
                             Debugger.Break();

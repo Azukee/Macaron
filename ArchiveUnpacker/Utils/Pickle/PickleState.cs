@@ -67,7 +67,7 @@ namespace ArchiveUnpacker.Utils.Pickle
                             object obj3 = stack.Pop();
                             object obj2 = stack.Pop();
                             object obj1 = stack.Pop();
-                            stack.Push((obj1, obj2, obj3));    // TODO: check if order is correct
+                            stack.Push(new [] {obj1, obj2, obj3});
                             break;
                         }
                         case PickleOpcode.Append: {

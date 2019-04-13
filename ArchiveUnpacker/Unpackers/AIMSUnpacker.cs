@@ -1,6 +1,6 @@
 /*
-Program Architecture & Framework:   @HoLLy-HaCKeR
-Archive Format and Engine Reversed: @Azukee
+Program Architecture & Framework:    @HoLLy-HaCKeR
+Archive Format and Engine Reversing: @Azukee
 */
 
 using System.Collections.Generic;

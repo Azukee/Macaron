@@ -1,3 +1,7 @@
+/*
+Program Architecture & Framework:    @HoLLy-HaCKeR
+Archive Format and Engine Reversing: @HoLLy-HaCKeR
+*/
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

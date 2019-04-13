@@ -6,25 +6,25 @@ namespace ArchiveUnpacker.Framework
 {
     internal static class UnpackerRegistry
     {
-        private static Dictionary<Type, Func<string, bool>> conditions = new Dictionary<Type, Func<string, bool>>();
+        private static readonly Dictionary<Type, Func<string, bool>> Conditions = new Dictionary<Type, Func<string, bool>>();
 
-        public static void Register<T>(Func<string, bool> condition) where T : IUnpacker
+        public static void Register<T>(Func<string, bool> condition) where T : IUnpacker, new()
         {
             var type = typeof(T);
-            if (conditions.ContainsKey(type))
+            if (Conditions.ContainsKey(type))
                 throw new Exception($"Condition for unpacker {type} has already been registered.");
 
-            conditions.Add(typeof(T), condition);
+            Conditions.Add(type, condition);
         }
 
         public static IUnpacker Get(string gameDir)
         {
-            var match = conditions.FirstOrDefault(x => x.Value(gameDir));
+            var match = Conditions.FirstOrDefault(x => x.Value(gameDir));
 
             if (match.Key is null)
                 return null;
 
-            return Activator.CreateInstance(match.Key) as IUnpacker;
+            return (IUnpacker)Activator.CreateInstance(match.Key);
         }
     }
 }

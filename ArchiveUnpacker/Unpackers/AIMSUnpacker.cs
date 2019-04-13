@@ -68,28 +68,27 @@ namespace ArchiveUnpacker.Unpackers {
             public string Path { get; }
 
             public void WriteToStream(Stream writeTo) {
-                using (var fs = File.OpenRead(sourceFile)) {
-                    using (var br = new BinaryReader(fs)) {
-                        fs.Seek(offset, SeekOrigin.Begin);
-                        var Encrypted = br.ReadBytes(4).SequenceEqual(new byte[] {0x4C /*L*/, 0x5A /*Z*/, 0x53 /*S*/, 0x53 /*S*/});
-                        var FileBytesToSave = new byte[0];
+                using (var fs = File.OpenRead(sourceFile))
+                using (var br = new BinaryReader(fs)) {
+                    fs.Seek(offset, SeekOrigin.Begin);
+                    var encrypted = br.ReadBytes(4).SequenceEqual(new byte[] { 0x4C /*L*/, 0x5A /*Z*/, 0x53 /*S*/, 0x53 /*S*/ });
 
-                        if (Encrypted) {
-                            var DecryptedSize = br.ReadUInt32();
-                            var FileBytes = br.ReadBytes((int) size);
-                            FileBytesToSave = new byte[DecryptedSize];
-                            using (var r = new BinaryReader(new CryptoStream(new MemoryStream(FileBytes, 0, FileBytes.Length),
-                                Blowfish.CreateDecryptor(), CryptoStreamMode.Read))) {
-                                r.Read(FileBytesToSave, 0, FileBytesToSave.Length);
-                            }
-                        } else {
-                            //Reset Location, so we don't skip first four bytes, after reading FileMagic at LOC:74
-                            br.BaseStream.Seek(offset, SeekOrigin.Begin);
-                            FileBytesToSave = br.ReadBytes((int) size);
+                    byte[] fileBytesToSave;
+                    if (encrypted) {
+                        var decryptedSize = br.ReadUInt32();
+                        var fileBytes = br.ReadBytes((int)size);
+                        fileBytesToSave = new byte[decryptedSize];
+                        using (var r = new BinaryReader(new CryptoStream(new MemoryStream(fileBytes, 0, fileBytes.Length),
+                            Blowfish.CreateDecryptor(), CryptoStreamMode.Read))) {
+                            r.Read(fileBytesToSave, 0, fileBytesToSave.Length);
                         }
-
-                        writeTo.Write(FileBytesToSave, 0, FileBytesToSave.Length);
+                    } else {
+                        //Reset Location, so we don't skip first four bytes, after reading FileMagic at LOC:74
+                        br.BaseStream.Seek(offset, SeekOrigin.Begin);
+                        fileBytesToSave = br.ReadBytes((int)size);
                     }
+
+                    writeTo.Write(fileBytesToSave, 0, fileBytesToSave.Length);
                 }
             }
         }

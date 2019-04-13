@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using ArchiveUnpacker.Framework;
@@ -39,7 +37,7 @@ namespace ArchiveUnpacker.Unpackers
                 // seek to index offset and read it
                 fs.Seek(indexOff + 2, SeekOrigin.Begin);    // TODO: skipping zlib header here
                 using (var decStream = new DeflateStream(fs, CompressionMode.Decompress, true)) {
-                    // PickleReader.ReadFromStream(decStream);
+                    var indexObject = PickleReader.ReadFromStream(decStream);
                 }
 
                 throw new NotImplementedException();

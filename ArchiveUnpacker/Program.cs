@@ -26,6 +26,12 @@ namespace ArchiveUnpacker
 
             // Get unpacker
             var unpacker = UnpackerRegistry.Get(directory);
+
+            if (unpacker is null) {
+                Console.WriteLine("Couldn't find an unpacker for this game/engine.");
+                return;
+            }
+
             foreach (IExtractableFile file in unpacker.LoadFiles(directory)) {
                 if (file.Path is null) {
                     // TODO: make up your own path I guess

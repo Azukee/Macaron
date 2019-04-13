@@ -16,7 +16,7 @@ namespace ArchiveUnpacker.Unpackers
     /// <summary>
     /// Unpacks files from VNs created using the Ren'Py engine.
     ///
-    /// Tested on renpy v6.17.3, v6.99.3, v6.99.12 and v6.99.14.3.
+    /// Tested on renpy v6.17.3, v6.99.3, v6.99.12, v6.99.13, v6.99.14.3, v7.2.0.
     /// </summary>
     internal class RenPyUnpacker : IUnpacker
     {
@@ -58,6 +58,6 @@ namespace ArchiveUnpacker.Unpackers
 
         private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.rpa", SearchOption.AllDirectories);
 
-        public static bool IsGameFolder(string folder) => File.Exists(Path.Combine(folder, "renpy", "main.py"));
+        public static bool IsGameFolder(string folder) => File.Exists(Path.Combine(folder, "renpy", "main.py")) || File.Exists(Path.Combine(folder, "renpy", "main.pyo"));
     }
 }

@@ -19,7 +19,7 @@ namespace ArchiveUnpacker.Framework
 
         public static IUnpacker Get(string gameDir)
         {
-            var match = Conditions.FirstOrDefault(x => x.Value(gameDir));
+            var match = Conditions.SingleOrDefault(x => x.Value(gameDir));
 
             if (match.Key is null)
                 return null;

@@ -35,7 +35,7 @@ namespace ArchiveUnpacker.Unpackers {
                     br.ReadBytes(4); // 4 unused bytes
                     uint offset = br.ReadUInt32();
                     uint size = br.ReadUInt32();
-                    yield return new ArtemisFile(path, size, offset, inputArchive, shaKey);
+                    yield return new ArtemisFile(path, offset, size, inputArchive, shaKey);
                 }
             }
         }
@@ -57,10 +57,10 @@ namespace ArchiveUnpacker.Unpackers {
             private readonly string sourceFile;
             private readonly byte[] shaKey;
 
-            public ArtemisFile(string path, uint size, uint offset, string sourceFile, byte[] shaKey) {
+            public ArtemisFile(string path, uint offset, uint size, string sourceFile, byte[] shaKey) {
                 Path = path;
-                this.size = size;
                 this.offset = offset;
+                this.size = size;
                 this.sourceFile = sourceFile;
                 this.shaKey = shaKey;
             }

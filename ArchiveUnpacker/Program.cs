@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using ArchiveUnpacker.Framework;
 using ArchiveUnpacker.Unpackers;
@@ -14,6 +14,7 @@ namespace ArchiveUnpacker
             // Register all types
             UnpackerRegistry.Register<ArtemisUnpacker>(ArtemisUnpacker.IsGameFolder);
             UnpackerRegistry.Register<AIMSUnpacker>(AIMSUnpacker.IsGameFolder);
+            UnpackerRegistry.Register<RenPyUnpacker>(RenPyUnpacker.IsGameFolder);
 
             Console.Write("Gimme directory: ");
 #if DEBUG

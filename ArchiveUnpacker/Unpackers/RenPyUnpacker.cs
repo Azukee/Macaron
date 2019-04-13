@@ -16,7 +16,7 @@ namespace ArchiveUnpacker.Unpackers
     /// <summary>
     /// Unpacks files from VNs created using the Ren'Py engine.
     ///
-    /// Tested on renpy v6.99.3 and v6.99.14.3.
+    /// Tested on renpy v6.17.3, v6.99.3, v6.99.12 and v6.99.14.3.
     /// </summary>
     internal class RenPyUnpacker : IUnpacker
     {

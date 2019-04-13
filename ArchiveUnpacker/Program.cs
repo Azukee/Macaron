@@ -15,6 +15,7 @@ namespace ArchiveUnpacker
             UnpackerRegistry.Register<ArtemisUnpacker>(ArtemisUnpacker.IsGameFolder);
             UnpackerRegistry.Register<AIMSUnpacker>(AIMSUnpacker.IsGameFolder);
             UnpackerRegistry.Register<RenPyUnpacker>(RenPyUnpacker.IsGameFolder);
+            UnpackerRegistry.Register<CatSystem2Unpacker>(CatSystem2Unpacker.IsGameFolder);
 
             Console.Write("Gimme directory: ");
 #if DEBUG

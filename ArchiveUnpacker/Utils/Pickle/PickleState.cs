@@ -2,28 +2,31 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace ArchiveUnpacker.Utils.Pickle
 {
+    /// <remarks>
+    /// For reference: https://github.com/python/cpython/blob/master/Lib/pickle.py
+    /// </remarks>
     public class PickleState
     {
         private int proto = -1;
-        
+
         private Stack<object> stack = new Stack<object>();
-        private Stack<Stack<object>> metaStack = new Stack<Stack<object>>();    // mark stack
+        private readonly Stack<Stack<object>> metaStack = new Stack<Stack<object>>();    // mark stack
         /// <summary>
         /// The memo is the data structure that remembers which objects the pickler has already seen, so that shared or recursive objects are pickled
         /// by reference and not by value.
         /// </summary>
-        public Dictionary<int, object> Memo = new Dictionary<int, object>();
+        private readonly Dictionary<int, object> memo = new Dictionary<int, object>();
 
         public object ReadFromStream(Stream s)
         {
             using (var br = new BinaryReader(s, Encoding.UTF8, true)) {
                 while (true) {
-                    PickleOpcode c = (PickleOpcode)br.ReadByte();
-                    Console.WriteLine($"Reading {c}");
+                    var c = (PickleOpcode)br.ReadByte();
                     switch (c) {
                         case PickleOpcode.Proto:
                             proto = br.ReadByte();
@@ -34,13 +37,13 @@ namespace ArchiveUnpacker.Utils.Pickle
                         case PickleOpcode.Binput: {
                             int i = br.ReadByte();
                             var value = stack.Peek();
-                            Memo[i] = value;
+                            memo[i] = value;
                             break;
                         }
                         case PickleOpcode.LongBinput: {
                             int i = br.ReadInt32();
                             var value = stack.Peek();
-                            Memo[i] = value;
+                            memo[i] = value;
                             break;
                         }
                         case PickleOpcode.Mark:
@@ -77,7 +80,7 @@ namespace ArchiveUnpacker.Utils.Pickle
                             break;
                         }
                         case PickleOpcode.Setitems: {
-                            var items = popMark().ToArray();
+                            var items = popMark().Reverse().ToArray();
                             var dict = stack.Peek();
                             if (dict is Dictionary<object, object> d) {
                                 for (int i = 0; i < items.Length; i += 2) d[items[i]] = items[i + 1];

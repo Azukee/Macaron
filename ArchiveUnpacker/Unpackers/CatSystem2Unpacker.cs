@@ -8,6 +8,7 @@ using System.Text;
 using ArchiveUnpacker.EncryptionSchemes;
 using ArchiveUnpacker.Framework;
 using ArchiveUnpacker.Framework.Exceptions;
+using ArchiveUnpacker.Framework.ExtractableFileTypes;
 using ArchiveUnpacker.Utils;
 using TriggersTools.Windows.Resources;
 
@@ -68,7 +69,7 @@ namespace ArchiveUnpacker.Unpackers
                     uint pos = BitConverter.ToUInt32(newBytes, 0);
                     uint len = BitConverter.ToUInt32(newBytes, 4);
 
-                    yield return new CatSystem2File(fileName, pos, len, inputArchive, dec);
+                    yield return new EncryptedFileSlice(fileName, pos, len, inputArchive, dec);
                 }
             }
         }
@@ -170,41 +171,6 @@ namespace ArchiveUnpacker.Unpackers
             }
 
             return sb.ToString();
-        }
-
-        private class CatSystem2File : IExtractableFile
-        {
-            public string Path { get; }
-            private readonly uint offset;
-            private readonly uint size;
-            private readonly string sourceFile;
-            private readonly BlowfishDecryptor dec;
-
-            public CatSystem2File(string path, uint offset, uint size, string sourceFile, BlowfishDecryptor dec)
-            {
-                Path = path;
-                this.offset = offset;
-                this.size = size;
-                this.sourceFile = sourceFile;
-                this.dec = dec;
-            }
-
-
-            public void WriteToStream(Stream writeTo)
-            {
-                const int bufferSize = 2048;
-                byte[] buffer = new byte[bufferSize];
-                using (var fs = File.OpenRead(sourceFile))
-                using (var cs = new CryptoStream(fs, dec, CryptoStreamMode.Read)) {
-                    fs.Seek(offset, SeekOrigin.Begin);
-
-                    for (int i = 0; i < size; i += bufferSize) {
-                        int toCopy = (int)Math.Min(size - i, bufferSize);
-                        var read = cs.Read(buffer, 0, toCopy &~7);
-                        writeTo.Write(buffer, 0, read);
-                    }
-                }
-            }
         }
     }
 }

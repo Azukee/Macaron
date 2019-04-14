@@ -2,7 +2,6 @@
 Program Architecture & Framework:    @HoLLy-HaCKeR
 Archive Format and Engine Reversing: @Azukee
 */
-
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;

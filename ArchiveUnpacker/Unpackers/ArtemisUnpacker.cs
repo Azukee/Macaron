@@ -7,18 +7,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using ArchiveUnpacker.Framework;
 using ArchiveUnpacker.Framework.Exceptions;
 
-namespace ArchiveUnpacker.Unpackers {
-    internal class ArtemisUnpacker : IUnpacker {
+namespace ArchiveUnpacker.Unpackers 
+{
+    internal class ArtemisUnpacker : IUnpacker 
+    {
+        private const string FileMagic = "pf8";
         public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
         public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive) {
             using (var fs = File.OpenRead(inputArchive))
             using (var br = new BinaryReader(fs)) {
-                var magic = br.ReadBytes(3);
-                if (!magic.SequenceEqual(new byte[] { 0x70 /*p*/, 0x66 /*f*/, 0x38 /*8*/ }))
+                string magic = Encoding.ASCII.GetString(br.ReadBytes(3));
+                if (magic != FileMagic)
                     throw new InvalidMagicException();
 
                 // read the entire header and calculate the key
@@ -40,16 +44,22 @@ namespace ArchiveUnpacker.Unpackers {
             }
         }
 
-        public static bool IsGameFolder(string folder) {
-            // TODO: make this proper
-            return Directory.Exists(folder) && File.Exists(Path.Combine(folder, "root.pfs"));
-        }
+        //the reason behind *.pfs* is because the initial *.pfs file is usually split in segment (*.pfs.001) so the extra * helps mask for them
+        public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.pfs*").Count(FileStartsWithMagic) > 0;
 
-        private static IEnumerable<string> GetArchivesFromGameFolder(string folder) {
-            // TODO: make this proper
-            yield return Path.Combine(folder, "root.pfs");
-        }
+        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.pfs*").Where(FileStartsWithMagic);
 
+        private static bool FileStartsWithMagic(string fileName)
+        {
+            byte[] buffer = new byte[FileMagic.Length];
+
+            using (var file = File.OpenRead(fileName)) {
+                if (file.Length <= FileMagic.Length) return false;
+                file.Read(buffer, 0, FileMagic.Length);
+                return Encoding.ASCII.GetString(buffer) == FileMagic;
+            }
+        }
+        
         private class ArtemisFile : IExtractableFile {
             public string Path { get; }
             private readonly uint offset;

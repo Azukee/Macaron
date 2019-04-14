@@ -15,10 +15,14 @@ namespace ArchiveUnpacker.Unpackers
 {
     /// <summary>
     /// Unpacker for CatSystem2.
-    ///
-    /// Used in games like Idol Magical Girl Chiruchiru Michiru part 1/2.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// Checked for:<br/>
+    /// - Idol Magical Girl Chiruchiru Michiru part 1/2<br/>
+    /// - The Fruit of Grisaia<br/>
+    /// - Newton and the Apple Tree
+    /// </para>
     /// Credits to trigger-death for his TriggersTools.CatSystem2, which served as a resource and is licensed under the MIT license.
     /// </remarks>
     public class CatSystem2Unpacker : IUnpacker

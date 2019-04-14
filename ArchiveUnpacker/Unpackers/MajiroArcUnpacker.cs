@@ -36,12 +36,13 @@ namespace ArchiveUnpacker.Unpackers
                     //I do this here so it's easier in the end to index these values, in the original code it just allocates a byte array
                     br.BaseStream.Seek(nameListOffset, SeekOrigin.Begin);
                     var names = new List<string>();
+                    
                     while (br.BaseStream.Position < nameListOffset + nameSize) {
-                        string name = "";
+                        StringBuilder name = new StringBuilder();
                         byte b;
                         while ((b = br.ReadByte()) != 0x00)
-                            name += (char) b;
-                        names.Add(name);
+                            name.Append((char) b);
+                        names.Add(name.ToString());
                     }
 
                     br.BaseStream.Seek(32, SeekOrigin.Begin);

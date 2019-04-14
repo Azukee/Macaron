@@ -41,13 +41,29 @@ namespace ArchiveUnpacker.Unpackers
                 if (magic != FileMagic)
                     throw new InvalidMagicException();
 
-                int unk1 = br.ReadInt32();
-                for (int i = 0; i < unk1 + 1; i++) {
+                int entries = br.ReadInt32();
+                BlowfishDecryptor dec = null;
+                for (int i = 0; i < entries + 1; i++) {
                     string fileName = br.ReadBytes(0x40).ToCString();
-                    if (fileName != "__key__.dat")
-                        fileName = DeobfuscateFileName(fileName, (uint)unchecked(indexRngSeed + i));
-                    uint pos = (br.ReadUInt32() ^ 0) * 0x48 + 8;
-                    uint len = br.ReadUInt32() ^ 0;
+                    ulong read = br.ReadUInt64();
+
+                    if (fileName == "__key__.dat") {
+                        // don't make key multiple times
+                        if (!(dec is null))
+                            continue;
+
+                        var key = MersenneTwister.GenRand((uint)(read >> 32));
+                        dec = new BlowfishDecryptor(new Blowfish(BitConverter.GetBytes(key)));
+                        continue;
+                    }
+
+                    fileName = DeobfuscateFileName(fileName, (uint)unchecked(indexRngSeed + i));
+                    read += (ulong)i;
+                    var newBytes = dec.TransformFinalBlock(BitConverter.GetBytes(read), 0, 8);
+
+                    uint pos = BitConverter.ToUInt32(newBytes, 0);
+                    uint len = BitConverter.ToUInt32(newBytes, 4);
+
                     // Debugger.Break();
                 }
             }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using ArchiveUnpacker.EncryptionSchemes;
 using ArchiveUnpacker.Framework;
@@ -52,10 +53,13 @@ namespace ArchiveUnpacker.Unpackers
                         if (!(dec is null))
                             continue;
 
-                        var key = MersenneTwister.GenRand((uint)(read >> 32));
+                        uint key = MersenneTwister.GenRand((uint)(read >> 32));
                         dec = new BlowfishDecryptor(new Blowfish(BitConverter.GetBytes(key)));
                         continue;
                     }
+
+                    if (dec is null)
+                        throw new Exception("First file entry wasn't encryption key");
 
                     fileName = DeobfuscateFileName(fileName, (uint)unchecked(indexRngSeed + i));
                     read += (ulong)i;
@@ -64,11 +68,9 @@ namespace ArchiveUnpacker.Unpackers
                     uint pos = BitConverter.ToUInt32(newBytes, 0);
                     uint len = BitConverter.ToUInt32(newBytes, 4);
 
-                    // Debugger.Break();
+                    yield return new CatSystem2File(fileName, pos, len, inputArchive, dec);
                 }
             }
-
-            throw new NotImplementedException();
         }
 
         private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.int").Where(FileStartsWithMagic);
@@ -168,6 +170,41 @@ namespace ArchiveUnpacker.Unpackers
             }
 
             return sb.ToString();
+        }
+
+        private class CatSystem2File : IExtractableFile
+        {
+            public string Path { get; }
+            private readonly uint offset;
+            private readonly uint size;
+            private readonly string sourceFile;
+            private readonly BlowfishDecryptor dec;
+
+            public CatSystem2File(string path, uint offset, uint size, string sourceFile, BlowfishDecryptor dec)
+            {
+                Path = path;
+                this.offset = offset;
+                this.size = size;
+                this.sourceFile = sourceFile;
+                this.dec = dec;
+            }
+
+
+            public void WriteToStream(Stream writeTo)
+            {
+                const int bufferSize = 2048;
+                byte[] buffer = new byte[bufferSize];
+                using (var fs = File.OpenRead(sourceFile))
+                using (var cs = new CryptoStream(fs, dec, CryptoStreamMode.Read)) {
+                    fs.Seek(offset, SeekOrigin.Begin);
+
+                    for (int i = 0; i < size; i += bufferSize) {
+                        int toCopy = (int)Math.Min(size - i, bufferSize);
+                        var read = cs.Read(buffer, 0, toCopy &~7);
+                        writeTo.Write(buffer, 0, read);
+                    }
+                }
+            }
         }
     }
 }

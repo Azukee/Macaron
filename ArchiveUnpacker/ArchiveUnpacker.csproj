@@ -6,4 +6,20 @@
         <LangVersion>7.3</LangVersion>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="TriggersTools.Windows.Resources" Version="1.0.2-build-000011" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Extracted\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Extracted\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Extracted\**" />
+    </ItemGroup>
+
 </Project>

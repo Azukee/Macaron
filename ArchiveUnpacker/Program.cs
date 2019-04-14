@@ -16,6 +16,7 @@ namespace ArchiveUnpacker
             UnpackerRegistry.Register<AIMSUnpacker>(AIMSUnpacker.IsGameFolder);
             UnpackerRegistry.Register<RenPyUnpacker>(RenPyUnpacker.IsGameFolder);
             UnpackerRegistry.Register<CatSystem2Unpacker>(CatSystem2Unpacker.IsGameFolder);
+            UnpackerRegistry.Register<MajiroArcUnpacker>(MajiroArcUnpacker.IsGameFolder);
 
             Console.Write("Gimme directory: ");
 #if DEBUG

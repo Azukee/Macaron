@@ -6,23 +6,24 @@ Loading Function Located at:         .text:00478900 (Ame no Marginal)
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using ArchiveUnpacker.Framework;
 using ArchiveUnpacker.Framework.Exceptions;
+using ArchiveUnpacker.Framework.ExtractableFileTypes;
 
 namespace ArchiveUnpacker.Unpackers
 {
     public class MajiroArcUnpacker : IUnpacker 
     {
+        private const string FileMagic = "MajiroArcV";
         public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
         public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive) 
         {
             using (var fs = File.OpenRead(inputArchive)) {
                 using (var br = new BinaryReader(fs)) {
-                    var magic = br.ReadBytes(10);
-                    if (!magic.SequenceEqual(new byte[] {
-                        0x4D /*M*/, 0x61 /*a*/, 0x6A /*j*/, 0x69 /*i*/, 0x72 /*r*/, 0x6F /*o*/, 0x41 /*A*/, 0x72 /*r*/, 0x63 /*c*/, 0x56 /*V*/
-                    }))
+                    string magic = Encoding.ASCII.GetString(br.ReadBytes(10));
+                    if (magic != FileMagic)
                         throw new InvalidMagicException();
 
                     br.ReadChars(5); // unused version
@@ -35,12 +36,13 @@ namespace ArchiveUnpacker.Unpackers
                     //I do this here so it's easier in the end to index these values, in the original code it just allocates a byte array
                     br.BaseStream.Seek(nameListOffset, SeekOrigin.Begin);
                     var names = new List<string>();
+                    
                     while (br.BaseStream.Position < nameListOffset + nameSize) {
-                        var chars = new List<char>();
+                        StringBuilder name = new StringBuilder();
                         byte b;
                         while ((b = br.ReadByte()) != 0x00)
-                            chars.Add((char) b);
-                        names.Add(new string(chars.ToArray()));
+                            name.Append((char) b);
+                        names.Add(name.ToString());
                     }
 
                     br.BaseStream.Seek(32, SeekOrigin.Begin);
@@ -51,50 +53,24 @@ namespace ArchiveUnpacker.Unpackers
                         var size = br.ReadUInt32();
                         br.ReadBytes(4); // 4 unknown bytes
 
-                        yield return new MajiroArcFile(names[i], size, offset, inputArchive);
+                        yield return new FileSlice(names[i], offset, size, inputArchive);
                     }
                 }
             }
         }
 
-        public static bool IsGameFolder(string folder)
+        public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.arc").Count(FileStartsWithMagic) > 0;
+
+        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.arc").Where(FileStartsWithMagic);
+        
+        private static bool FileStartsWithMagic(string fileName)
         {
-            // TODO: make this proper
-            return Directory.Exists(folder) && File.Exists(Path.Combine(folder, "data.arc"));
-        }
+            byte[] buffer = new byte[FileMagic.Length];
 
-        private static IEnumerable<string> GetArchivesFromGameFolder(string folder)
-        {
-            // TODO: make this proper
-            yield return Path.Combine(folder, "data.arc");
-        }
-
-        private class MajiroArcFile : IExtractableFile 
-        {
-            public string Path { get; }
-            private readonly uint offset;
-            private readonly uint size;
-            private readonly string sourceFile;
-
-            public MajiroArcFile(string path, uint size, uint offset, string sourceFile) 
-            {
-                Path = path;
-                this.size = size;
-                this.offset = offset;
-                this.sourceFile = sourceFile;
-            }
-
-
-            public void WriteToStream(Stream writeTo) 
-            {
-                using (var fs = File.OpenRead(sourceFile)) {
-                    using (var br = new BinaryReader(fs)) {
-                        fs.Seek(offset, SeekOrigin.Begin);
-
-                        var fileBytesToSave = br.ReadBytes((int) size);
-                        writeTo.Write(fileBytesToSave, 0, fileBytesToSave.Length);
-                    }
-                }
+            using (var file = File.OpenRead(fileName)) {
+                if (file.Length <= FileMagic.Length) return false;
+                file.Read(buffer, 0, FileMagic.Length);
+                return Encoding.ASCII.GetString(buffer) == FileMagic;
             }
         }
     }

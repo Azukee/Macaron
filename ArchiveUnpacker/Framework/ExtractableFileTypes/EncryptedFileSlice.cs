@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 
 namespace ArchiveUnpacker.Framework.ExtractableFileTypes
 {
-    internal class EncryptedFileSlice : FileSlice
+    public class EncryptedFileSlice : FileSlice
     {
         private readonly ICryptoTransform crypto;
 
@@ -15,11 +15,11 @@ namespace ArchiveUnpacker.Framework.ExtractableFileTypes
 
         public override void WriteToStream(Stream writeTo)
         {
-            byte[] buffer = new byte[BufferSize];
             using (var fs = File.OpenRead(SourceFile))
             using (var cs = new CryptoStream(fs, crypto, CryptoStreamMode.Read)) {
                 fs.Seek(Offset, SeekOrigin.Begin);
 
+                var buffer = new byte[BufferSize];
                 for (int i = 0; i < Size; i += buffer.Length) {
                     int toCopy = (int)Math.Min(Size - i, buffer.Length);
                     cs.Read(buffer, 0, toCopy &~(crypto.InputBlockSize - 1));

@@ -223,7 +223,7 @@ namespace ArchiveUnpacker.EncryptionSchemes {
 				0xb74e6132, 0xce77e25b, 0x578fdfe3, 0x3ac372e6
 			}
 		};
-		
+
         private readonly uint[] P;
         private readonly uint[,] S;
 
@@ -382,7 +382,7 @@ namespace ArchiveUnpacker.EncryptionSchemes {
 		    buf[index + 2] = (byte) (value >> 16);
 		    buf[index + 3] = (byte) (value >> 24);
 	    }
-	    
+
         public int TransformBlock(byte[] inBuffer, int offset, int count, byte[] outBuffer, int outOffset) {
             for (var i = 0; i < count; i += BlockSize) {
                 var xl = ToUInt32(inBuffer, offset + i);

@@ -144,22 +144,20 @@ namespace ArchiveUnpacker.Unpackers
 
         private static string DeobfuscateFileName(string fileName, uint seed)
         {
-            const int length = 52;
             const string keyspace = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
             var sb = new StringBuilder(fileName.Length);
-
             uint key = MersenneTwister.GenRand(seed);
             int shift = (byte) ((key >> 24) + (key >> 16) + (key >> 8) + key);
 
             for (int i = 0; i < fileName.Length; i++, shift++) {
                 char c = fileName[i];
 
-                // the crypto: caesar cipher on reversed keyspace, with shifting index
+                // the crypto is basically caesar cipher on reversed keyspace, with shifting index
                 if (keyspace.Contains(c)) {
                     int idx = keyspace.IndexOf(c);
-                    int reverseIdx = length - idx - 1;
-                    c = keyspace[mod(reverseIdx - shift, length)];
+                    int reverseIdx = keyspace.Length - idx - 1;
+                    c = keyspace[mod(reverseIdx - shift, keyspace.Length)];
                 }
 
                 sb.Append(c);

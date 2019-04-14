@@ -81,22 +81,21 @@ namespace ArchiveUnpacker.Unpackers
         {
             // I had a stroke and decided to make everything as "functional" as possible, sorry.
             var pairs = new[] {
-                getPair("KEY_CODE", "KEY"),
-                getPair("V_CODE", "DATA"),
-                getPair("V_CODE2", "DATA"),
+                new ResourceId("KEY_CODE"),
+                new ResourceId("V_CODE"),
+                new ResourceId("V_CODE2"),
             };
-            ResourceIdPair getPair(string type, string name) => new ResourceIdPair(new ResourceId(type), new ResourceId(name), 1041);
 
             // assuming all *.int files are in game exe folder
             foreach (string file in Directory.GetFiles(startFolder, "*.exe")) {
                 using (var resInfo = new ResourceInfo(file, true)) {
                     // only attempt files where all resources are present
-                    if (!pairs.All(pair => resInfo.ResourceTypes.Any(resType => resType == pair.Type)))
+                    if (!pairs.All(pair => resInfo.ResourceTypes.Any(resType => resType == pair)))
                         continue;
 
-                    byte[][] resData = pairs.Select(pair => resInfo[pair].ToBytes()).ToArray();
+                    byte[][] resData = pairs.Select(pair => resInfo[pair].First().ToBytes()).ToArray();
 
-                    Debug.Assert(resData.All(x => x.Length == 16), "Keys were not 16 bytes long");
+                    Debug.Assert(resData.Skip(1).All(x => x.Length == 16), "VCodes were not 16 bytes long");
 
                     var bf = new BlowfishDecryptor(new Blowfish(resData[0].Select(x => (byte)(x ^ 0xCD)).ToArray()));
                     var vCode1 = bf.TransformFinalBlock(resData[1], 0, 16).ToCString();

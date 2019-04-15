@@ -10,21 +10,28 @@ using System.Security.Cryptography;
 using System.Text;
 using ArchiveUnpacker.Framework;
 using ArchiveUnpacker.Framework.Exceptions;
+using ArchiveUnpacker.Framework.ExtractableFileTypes;
 
 namespace ArchiveUnpacker.Unpackers 
 {
+    /// <summary>
+    /// Unpacker for the Artemis engine
+    /// </summary>
     internal class ArtemisUnpacker : IUnpacker 
     {
-        private const string FileMagic = "pf8";
+        private const string FileMagic = "pf";
         public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
-        public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive) {
+        public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive) 
+        {
             using (var fs = File.OpenRead(inputArchive))
             using (var br = new BinaryReader(fs)) {
-                string magic = Encoding.ASCII.GetString(br.ReadBytes(3));
+                string magic = Encoding.ASCII.GetString(br.ReadBytes(2));
                 if (magic != FileMagic)
                     throw new InvalidMagicException();
 
+                char version = br.ReadChar();
+                
                 // read the entire header and calculate the key
                 byte[] shaKey;
                 int headerSize = br.ReadInt32();
@@ -39,7 +46,10 @@ namespace ArchiveUnpacker.Unpackers
                     br.ReadBytes(4); // 4 unused bytes
                     uint offset = br.ReadUInt32();
                     uint size = br.ReadUInt32();
-                    yield return new ArtemisFile(path, offset, size, inputArchive, shaKey);
+                    if(version == '8')
+                        yield return new ArtemisFile(path, offset, size, inputArchive, shaKey);
+                    else
+                        yield return new FileSlice(path, offset, size, inputArchive);
                 }
             }
         }

@@ -13,7 +13,6 @@ namespace ArchiveUnpacker.Unpackers
 {
     public class AdvHDUnpacker : IUnpacker
     {
-        private const string FileMagic = "MajiroArcV";
         public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
         public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive) 
@@ -42,19 +41,17 @@ namespace ArchiveUnpacker.Unpackers
             }
         }
         
-        public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.arc").Count(FileDoesntStartWithMagic) > 0;
+        public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.arc").Length > 0 && IsAdvHDGame(folder);
 
-        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.arc").Where(FileDoesntStartWithMagic);
+        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.arc");
         
-        private static bool FileDoesntStartWithMagic(string fileName)
+        private static bool IsAdvHDGame(string gameDirectory)
         {
-            byte[] buffer = new byte[FileMagic.Length];
-
-            using (var file = File.OpenRead(fileName)) {
-                if (file.Length <= FileMagic.Length) return false;
-                file.Read(buffer, 0, FileMagic.Length);
-                return Encoding.ASCII.GetString(buffer) != FileMagic;
-            }
+            foreach (string file in Directory.GetFiles(gameDirectory, "*.exe")) 
+                if (System.Diagnostics.FileVersionInfo.GetVersionInfo(file).FileDescription == "ADVPlayerHD")
+                    return true;
+            
+            return false;
         }
     }
 }

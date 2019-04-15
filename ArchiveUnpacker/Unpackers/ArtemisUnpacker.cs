@@ -10,21 +10,28 @@ using System.Security.Cryptography;
 using System.Text;
 using ArchiveUnpacker.Framework;
 using ArchiveUnpacker.Framework.Exceptions;
+using ArchiveUnpacker.Framework.ExtractableFileTypes;
 
 namespace ArchiveUnpacker.Unpackers 
 {
+    /// <summary>
+    /// Unpacker for the Artemis engine
+    /// </summary>
     internal class ArtemisUnpacker : IUnpacker 
     {
-        private const string FileMagic = "pf8";
+        private const string FileMagic = "pf";
         public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
-        public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive) {
+        public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive) 
+        {
             using (var fs = File.OpenRead(inputArchive))
             using (var br = new BinaryReader(fs)) {
-                string magic = Encoding.ASCII.GetString(br.ReadBytes(3));
+                string magic = Encoding.ASCII.GetString(br.ReadBytes(2));
                 if (magic != FileMagic)
                     throw new InvalidMagicException();
 
+                char version = br.ReadChar();
+                
                 // read the entire header and calculate the key
                 byte[] shaKey;
                 int headerSize = br.ReadInt32();
@@ -35,19 +42,22 @@ namespace ArchiveUnpacker.Unpackers
                 // read the individual entries
                 int entries = br.ReadInt32();
                 for (int i = 0; i < entries; i++) {
-                    string path = new string(br.ReadChars(br.ReadInt32()));
+                    string path = Encoding.UTF8.GetString(br.ReadBytes(br.ReadInt32()));
                     br.ReadBytes(4); // 4 unused bytes
                     uint offset = br.ReadUInt32();
                     uint size = br.ReadUInt32();
-                    yield return new ArtemisFile(path, offset, size, inputArchive, shaKey);
+                    if(version == '8')
+                        yield return new ArtemisFile(path, offset, size, inputArchive, shaKey);
+                    else
+                        yield return new FileSlice(path, offset, size, inputArchive);
                 }
             }
         }
 
         //the reason behind *.pfs* is because the initial *.pfs file is usually split in segment (*.pfs.001) so the extra * helps mask for them
-        public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.pfs*").Count(FileStartsWithMagic) > 0;
+        public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.pfs*", SearchOption.AllDirectories).Count(FileStartsWithMagic) > 0;
 
-        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.pfs*").Where(FileStartsWithMagic);
+        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.pfs*", SearchOption.AllDirectories).Where(FileStartsWithMagic);
 
         private static bool FileStartsWithMagic(string fileName)
         {

@@ -42,7 +42,7 @@ namespace ArchiveUnpacker.Unpackers
                 // read the individual entries
                 int entries = br.ReadInt32();
                 for (int i = 0; i < entries; i++) {
-                    string path = new string(br.ReadChars(br.ReadInt32()));
+                    string path = Encoding.UTF8.GetString(br.ReadBytes(br.ReadInt32()));
                     br.ReadBytes(4); // 4 unused bytes
                     uint offset = br.ReadUInt32();
                     uint size = br.ReadUInt32();

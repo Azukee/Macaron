@@ -55,9 +55,9 @@ namespace ArchiveUnpacker.Unpackers
         }
 
         //the reason behind *.pfs* is because the initial *.pfs file is usually split in segment (*.pfs.001) so the extra * helps mask for them
-        public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.pfs*").Count(FileStartsWithMagic) > 0;
+        public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.pfs*", SearchOption.AllDirectories).Count(FileStartsWithMagic) > 0;
 
-        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.pfs*").Where(FileStartsWithMagic);
+        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.pfs*", SearchOption.AllDirectories).Where(FileStartsWithMagic);
 
         private static bool FileStartsWithMagic(string fileName)
         {

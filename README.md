@@ -1,7 +1,7 @@
 ![MacaronHeader](https://i.imgur.com/OiFhlqw.png)  
 [![Travis](https://img.shields.io/travis/com/Azukee/ArchiveUnpacker.svg)](https://travis-ci.com/Azukee/ArchiveUnpacker)
 
-ArchiveUnpacker is a tool to unpack various archive types, to see the currently supported archives check the list below.
+Macaron is a tool to unpack various archive types, to see the currently supported archives check the list below.
 
 ## Supported archives
 | Engine         | Extension | Tested Games                                |

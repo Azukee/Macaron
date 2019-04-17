@@ -7,14 +7,9 @@ ArchiveUnpacker is a tool to unpack various archive types, to see the currently 
 |----------------|-----------|---------------------------------------------|
 | AIMS           | .p        | Tropical Liquor                             |
 | AdvHD          | .arc      | LoveKami -Divinity Stage-                   |
-| Artemis        | .pfs      | NekoMiko                                    |
-|                |           | Narcissu 10th Anniversary Anthology Project |
-| CatSystem2     | .int      | Idol Magical Girl Chiruchiru Michiru Part 1 |
-|                |           | Idol Magical Girl Chiruchiru Michiru Part 2 |
-|                |           | The Fruit of Grisaia                        |
-|                |           | Newton and the Apple Tree                   |
+| Artemis        | .pfs      | NekoMiko<br>Narcissu 10th Anniversary Anthology Project|
+| CatSystem2     | .int      | Idol Magical Girl Chiruchiru Michiru Part 1/2<br>The Fruit of Grisaia<br>Newton and the Apple Tree
 | ? (HyPack)     | .pak      | Nurse Love Addiction                        |
 | ? (Majiro Arc) | .arc      | Ame no Marginal                             |
 | ? (NekoPack)   | .pak      | Funbag Fantasy                              |
-| Ren'Py         | .rpa      | Wolf Tails                                  |
-|                |           | The Sakura Series                           |
+| Ren'Py         | .rpa      | Wolf Tails<br>The Sakura Series                                  |

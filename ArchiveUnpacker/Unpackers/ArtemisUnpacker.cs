@@ -12,17 +12,17 @@ using ArchiveUnpacker.Framework;
 using ArchiveUnpacker.Framework.Exceptions;
 using ArchiveUnpacker.Framework.ExtractableFileTypes;
 
-namespace ArchiveUnpacker.Unpackers 
+namespace ArchiveUnpacker.Unpackers
 {
     /// <summary>
     /// Unpacker for the Artemis engine
     /// </summary>
-    internal class ArtemisUnpacker : IUnpacker 
+    internal class ArtemisUnpacker : IUnpacker
     {
         private const string FileMagic = "pf";
         public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
-        public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive) 
+        public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive)
         {
             using (var fs = File.OpenRead(inputArchive))
             using (var br = new BinaryReader(fs)) {
@@ -31,7 +31,7 @@ namespace ArchiveUnpacker.Unpackers
                     throw new InvalidMagicException();
 
                 char version = br.ReadChar();
-                
+
                 // read the entire header and calculate the key
                 byte[] shaKey;
                 int headerSize = br.ReadInt32();
@@ -69,7 +69,7 @@ namespace ArchiveUnpacker.Unpackers
                 return Encoding.ASCII.GetString(buffer) == FileMagic;
             }
         }
-        
+
         private class ArtemisFile : IExtractableFile {
             public string Path { get; }
             private readonly uint offset;

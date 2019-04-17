@@ -15,7 +15,7 @@ namespace ArchiveUnpacker.Unpackers
     public class NekoPackUnpacker : IUnpacker
     {
         private const string FileMagic = "NEKOPACK4A";
-        
+
         public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
         public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive)
@@ -25,21 +25,21 @@ namespace ArchiveUnpacker.Unpackers
                 string magic = Encoding.ASCII.GetString(br.ReadBytes(FileMagic.Length));
                 if (magic != FileMagic)
                     throw new InvalidMagicException();
-                    
+
                 uint headerSize = br.ReadUInt32();
                 while (fs.Position < headerSize) {
                     string name = Encoding.UTF8.GetString(br.ReadBytes(br.ReadInt32())).TrimEnd('\0');
-                        
+
                     int key = name.Sum(arg => (int)(sbyte)arg);
 
                     uint offset = br.ReadUInt32() ^ (uint)key;
                     uint size   = br.ReadUInt32() ^ (uint)key;
-                        
+
                     yield return new NekoPackFile(name, offset, size, inputArchive);
                 }
             }
         }
-        
+
         public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.pak").Count(FileStartsWithMagic) > 0;
 
         private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.pak").Where(FileStartsWithMagic);
@@ -54,7 +54,7 @@ namespace ArchiveUnpacker.Unpackers
                 return Encoding.ASCII.GetString(buffer) == FileMagic;
             }
         }
-        
+
         private class NekoPackFile : IExtractableFile
         {
             public string Path { get; }
@@ -85,12 +85,12 @@ namespace ArchiveUnpacker.Unpackers
                     fs.Seek(offset + size - 4, SeekOrigin.Begin);
                     uint decompressedSize = br.ReadUInt32();
                     fs.Seek(offset + 4, SeekOrigin.Begin);
-                        
+
                     byte[] buffer = new byte[size];
                     buffer[0] = header[2];
                     buffer[1] = header[3];
                     br.Read(buffer, 2, (int)size - 6);
-                        
+
                     using (var decStream = new DeflateStream(new MemoryStream(buffer, 0, buffer.Length), CompressionMode.Decompress, true)) {
                         byte[] decompressedBuffer = new byte[decompressedSize];
                         decStream.Read(decompressedBuffer, 0, decompressedBuffer.Length);

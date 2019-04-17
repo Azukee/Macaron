@@ -11,9 +11,9 @@ using ArchiveUnpacker.EncryptionSchemes;
 using ArchiveUnpacker.Framework;
 using ArchiveUnpacker.Framework.Exceptions;
 
-namespace ArchiveUnpacker.Unpackers 
+namespace ArchiveUnpacker.Unpackers
 {
-    public class AIMSUnpacker : IUnpacker 
+    public class AIMSUnpacker : IUnpacker
     {
         private const string FileMagic = "PACK";
         private static readonly byte[] BlowfishKey = {
@@ -26,7 +26,7 @@ namespace ArchiveUnpacker.Unpackers
 
         public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
-        public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive) 
+        public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive)
         {
             using (var fs = File.OpenRead(inputArchive)) {
                 using (var br = new BinaryReader(fs)) {
@@ -61,7 +61,7 @@ namespace ArchiveUnpacker.Unpackers
                 return Encoding.ASCII.GetString(buffer) == FileMagic;
             }
         }
-        
+
         private class AIMSFile : IExtractableFile {
             private readonly uint offset;
             private readonly uint size;

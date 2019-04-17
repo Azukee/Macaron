@@ -9,7 +9,7 @@ namespace ArchiveUnpacker
     {
         private const string ExtractDirectory = "Extracted";
 
-        private static void Main(string[] args)
+        static Program()
         {
             // Register all types
             UnpackerRegistry.Register<ArtemisUnpacker>(ArtemisUnpacker.IsGameFolder);
@@ -20,7 +20,10 @@ namespace ArchiveUnpacker
             UnpackerRegistry.Register<AdvHDUnpacker>(AdvHDUnpacker.IsGameFolder);
             UnpackerRegistry.Register<HyPackUnpacker>(HyPackUnpacker.IsGameFolder);
             UnpackerRegistry.Register<NekoPackUnpacker>(NekoPackUnpacker.IsGameFolder);
+        }
 
+        private static void Main(string[] args)
+        {
             Console.Write("Gimme directory: ");
 #if DEBUG
             string directory = @"testDirs\Artemis";

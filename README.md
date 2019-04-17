@@ -3,6 +3,7 @@
 
 Macaron is a tool to unpack various archive types, to see the currently supported archives check the list below.
 
+
 ## Supported archives
 | Engine         | Extension | Tested Games                                |
 |----------------|-----------|---------------------------------------------|
@@ -14,3 +15,6 @@ Macaron is a tool to unpack various archive types, to see the currently supporte
 | ? (Majiro Arc) | .arc      | Ame no Marginal                             |
 | ? (NekoPack)   | .pak      | Funbag Fantasy                              |
 | Ren'Py         | .rpa      | Wolf Tails<br>The Sakura Series                                  |
+
+## Credits
+Programmed and maintained by: [Azukee](https://github.com/Azukee) and [HoLLy](https://github.com/HoLLy-HaCKeR)

@@ -10,15 +10,16 @@ using System.Text;
 using ArchiveUnpacker.Framework;
 using ArchiveUnpacker.Framework.Exceptions;
 using ArchiveUnpacker.Framework.ExtractableFileTypes;
+using ArchiveUnpacker.Utils;
 
 namespace ArchiveUnpacker.Unpackers
 {
-    public class MajiroArcUnpacker : IUnpacker 
+    public class MajiroArcUnpacker : IUnpacker
     {
         private const string FileMagic = "MajiroArcV";
         public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
-        public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive) 
+        public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive)
         {
             using (var fs = File.OpenRead(inputArchive)) {
                 using (var br = new BinaryReader(fs)) {
@@ -36,13 +37,9 @@ namespace ArchiveUnpacker.Unpackers
                     //I do this here so it's easier in the end to index these values, in the original code it just allocates a byte array
                     br.BaseStream.Seek(nameListOffset, SeekOrigin.Begin);
                     var names = new List<string>();
-                    
+
                     while (br.BaseStream.Position < nameListOffset + nameSize) {
-                        StringBuilder name = new StringBuilder();
-                        byte b;
-                        while ((b = br.ReadByte()) != 0x00)
-                            name.Append((char) b);
-                        names.Add(name.ToString());
+                        names.Add(br.ReadCString(Encoding.GetEncoding(932)));
                     }
 
                     br.BaseStream.Seek(32, SeekOrigin.Begin);
@@ -62,7 +59,7 @@ namespace ArchiveUnpacker.Unpackers
         public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.arc").Count(FileStartsWithMagic) > 0;
 
         private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.arc").Where(FileStartsWithMagic);
-        
+
         private static bool FileStartsWithMagic(string fileName)
         {
             byte[] buffer = new byte[FileMagic.Length];

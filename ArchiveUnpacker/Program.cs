@@ -19,6 +19,7 @@ namespace ArchiveUnpacker
             UnpackerRegistry.Register<MajiroArcUnpacker>(MajiroArcUnpacker.IsGameFolder);
             UnpackerRegistry.Register<AdvHDUnpacker>(AdvHDUnpacker.IsGameFolder);
             UnpackerRegistry.Register<HyPackUnpacker>(HyPackUnpacker.IsGameFolder);
+            UnpackerRegistry.Register<NekoPackUnpacker>(NekoPackUnpacker.IsGameFolder);
 
             Console.Write("Gimme directory: ");
 #if DEBUG

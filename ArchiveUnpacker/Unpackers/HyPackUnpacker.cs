@@ -15,17 +15,17 @@ namespace ArchiveUnpacker.Unpackers
     public class HyPackUnpacker : IUnpacker
     {
         private const string FileMagic = "HyPack";
-        
+
         public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
         public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive)
         {
-            using (var fs = File.OpenRead(inputArchive)) 
+            using (var fs = File.OpenRead(inputArchive))
                 using (var br = new BinaryReader(fs)) {
                     string magic = Encoding.ASCII.GetString(br.ReadBytes(6));
                     if (magic != FileMagic)
                         throw new InvalidMagicException();
-                    
+
                     br.ReadUInt16(); // unknown
                     uint headerOffset = br.ReadUInt32() + 0x10;
                     uint files = br.ReadUInt32();
@@ -40,7 +40,7 @@ namespace ArchiveUnpacker.Unpackers
                     }
                 }
         }
-        
+
         public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.pak").Count(FileStartsWithMagic) > 0;
 
         private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.pak").Where(FileStartsWithMagic);

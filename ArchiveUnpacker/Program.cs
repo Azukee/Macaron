@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using ArchiveUnpacker.CliArgs;
 using ArchiveUnpacker.Framework;
 using ArchiveUnpacker.Unpackers;
@@ -28,7 +29,7 @@ namespace ArchiveUnpacker
 
         private static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<ExtractOptions, ListOptions, FindOptions, DetectOptions>(args)
+            Parser.Default.ParseArguments<ExtractOptions, ListOptions, DetectOptions>(args)
                 .WithParsed(SwitchOnResult);
         }
 
@@ -37,7 +38,6 @@ namespace ArchiveUnpacker
             switch (obj) {
                 case ExtractOptions o: Extract(o); break;
                 case ListOptions o: List(o); break;
-                case FindOptions o: Find(o); break;
                 case DetectOptions o: Detect(o); break;
             }
         }
@@ -75,12 +75,12 @@ namespace ArchiveUnpacker
 
         private static void List(ListOptions opt)
         {
-            Console.WriteLine("list");
-        }
+            // Get unpacker
+            var unpacker = UnpackerRegistry.Get(opt.Directory);
 
-        private static void Find(FindOptions opt)
-        {
-            Console.WriteLine("find");
+            foreach (IExtractableFile file in unpacker.LoadFiles(opt.Directory).OrderBy(x => x.Path)) {
+                Console.WriteLine(file.Path);
+            }
         }
 
         private static void Detect(DetectOptions opt)

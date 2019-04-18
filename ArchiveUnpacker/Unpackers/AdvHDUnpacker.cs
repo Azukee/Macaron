@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using ArchiveUnpacker.Framework;
 using ArchiveUnpacker.Framework.ExtractableFileTypes;
+using ArchiveUnpacker.Utils;
 
 namespace ArchiveUnpacker.Unpackers
 {
@@ -25,17 +26,8 @@ namespace ArchiveUnpacker.Unpackers
                     for (int i = 0; i < count; i++) {
                         uint size = (uint) (br.ReadUInt32() + entrySize);
                         uint offset = (uint) (br.ReadUInt32() + entrySize);
-                        StringBuilder path = new StringBuilder();
-                        while (true) {
-                            char c;
-                            if ((c = br.ReadChar()) == 0)
-                                break;
-                            br.ReadByte(); //skip 00 if first char isn't null
-                            path.Append(c);
-                        }
-
-                        br.ReadByte(); // unused byte
-                        yield return new FileSlice(path.ToString(), offset, size, inputArchive);
+                        string path = br.ReadCString(Encoding.Unicode);
+                        yield return new FileSlice(path, offset, size, inputArchive);
                     }
                 }
             }

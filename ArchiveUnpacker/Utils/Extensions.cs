@@ -12,15 +12,22 @@ namespace ArchiveUnpacker.Utils
             if (enc is null)
                 enc = Encoding.UTF8;
 
+            var multiByte = !enc.IsSingleByte;
+
             long startIdx = br.BaseStream.Position;
-            for (; br.BaseStream.Position < br.BaseStream.Length;)
-                if (br.ReadByte() == 0)
+            for (int i = 0; br.BaseStream.Position < br.BaseStream.Length; i++) {
+                if (br.ReadByte() == 0 && (multiByte && i % 2 == 0))
                     break;
+            }
             long endIdx = br.BaseStream.Position;
 
             br.BaseStream.Position = startIdx;
             string name = enc.GetString(br.ReadBytes((int)(endIdx - startIdx - 1)));
             ++br.BaseStream.Position;
+
+            if (multiByte)
+                ++br.BaseStream.Position;
+
             return name;
         }
     }

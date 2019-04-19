@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using ArchiveUnpacker.Framework;
 using ArchiveUnpacker.Framework.Exceptions;
+using ArchiveUnpacker.Framework.ExtractableFileTypes;
 using ArchiveUnpacker.Utils;
 
 namespace ArchiveUnpacker.Unpackers
@@ -29,7 +30,6 @@ namespace ArchiveUnpacker.Unpackers
                     throw new InvalidMagicException();
 
                 Dictionary<int, FileIndex> files = new Dictionary<int, FileIndex>();
-                
                 br.ReadBytes(0x4);
 
                 byte[] chunk = ReadUTF(br);
@@ -63,14 +63,15 @@ namespace ArchiveUnpacker.Unpackers
                 }
 
                 if (header.ContainsKey("ItocOffset")) {
-                    uint align = (uint) header["Align"];
-                    long offset = (long)header["ItocOffset"];
+                    uint align = (uint)(int) header["Align"];
+                    long offset = (long) header["ItocOffset"];
                     
                     fs.Seek(offset, SeekOrigin.Begin);
                     var tocMagic = Encoding.ASCII.GetString(br.ReadBytes(4));
                     if (tocMagic != "ITOC")
                         throw new InvalidMagicException();
 
+                    br.ReadBytes(4);
                     byte[] itocChunk = ReadUTF(br);
                     var itoc = DecryptUTF(itocChunk).First();
 
@@ -85,10 +86,10 @@ namespace ArchiveUnpacker.Unpackers
                             files[id] = fi;
                         }
 
-                        fi.size = (uint) entry["FileSize"];
+                        fi.size = (uint)(int) entry["FileSize"];
                         fi.upSize = fi.size;
                         if (entry.ContainsKey("ExtractSize"))
-                            fi.upSize = (uint) entry["ExtractSize"];
+                            fi.upSize = (uint)(int) entry["ExtractSize"];
                     }
 
                     long currPos = contentOffset;
@@ -102,16 +103,16 @@ namespace ArchiveUnpacker.Unpackers
                                 currPos += align - remainder;
                         }
 
-                        if (entry.name.Length <= 0) 
+                        if (entry.name == null) 
                             entry.name = id.ToString("D5");
                     }
 
                 }
                 
-                //read files
+                //This is *NOT* correct, this is just a placeholder
+                foreach(FileIndex fi in files.Values)
+                    yield return new FileSlice(fi.name, fi.offset, fi.size, inputArchive);
             }
-
-            throw new NotImplementedException();
         }
 
         private byte[] ReadUTF(BinaryReader br) {
@@ -145,7 +146,7 @@ namespace ArchiveUnpacker.Unpackers
             using (var br = new BinaryReader(ms)) {
                 var rowsOffset = br.ReadInt32BE();
                 var stringsOffset = br.ReadInt32BE();
-                var dataOffset = br.ReadInt32BE();
+                var dataOffset = br.ReadInt32BE() + 8;
                 br.ReadBytes(4);
                 int columnCount = br.ReadInt16BE();
                 int rowLength = br.ReadInt16BE();
@@ -162,10 +163,13 @@ namespace ArchiveUnpacker.Unpackers
                     var nameOffset = stringsOffset + br.ReadInt32BE();
                     var posBefore = ms.Position;
                     
-                    ms.Seek(nameOffset, SeekOrigin.Begin);
-
+                    StringBuilder name = new StringBuilder();
                     
-                    columns.Add(new Column {Flags = (Flags) flags, Name = br.ReadCString()});
+                    ms.Seek(nameOffset, SeekOrigin.Begin);
+                    char c;
+                    while ((c = br.ReadChar()) != 0x00)
+                        name.Append(c);
+                    columns.Add(new Column {Flags = (Flags) flags, Name = name.ToString()});
                     ms.Seek(posBefore, SeekOrigin.Begin);
                 }
 
@@ -217,7 +221,7 @@ namespace ArchiveUnpacker.Unpackers
                                 var posBefore = ms.Position;
                                 var offset = dataOffset + br.ReadInt32BE();
                                 var length = br.ReadInt32BE();
-                                row[column.Name] = chunk.Skip(offset).Take(length);
+                                row[column.Name] = chunk.Skip(offset).Take(length).ToArray();
                                 ms.Seek(posBefore, SeekOrigin.Begin);
                                 break;
                             }
@@ -228,7 +232,7 @@ namespace ArchiveUnpacker.Unpackers
                 return returnTable;
             }
         }
-
+        
         public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.cpk").Count(FileStartsWithMagic) > 0;
 
         private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.cpk").Where(FileStartsWithMagic);

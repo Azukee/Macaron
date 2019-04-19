@@ -28,29 +28,39 @@ namespace ArchiveUnpacker.Unpackers
                 if (magic != FileMagic)
                     throw new InvalidMagicException();
 
-                br.ReadBytes(4);
+                br.ReadBytes(0x4);
                 var chunkSize = br.ReadInt64();
                 var chunk = br.ReadBytes((int) chunkSize);
-                if (!chunk.SequenceEqual(UTFMagic)) {
-                    var key = 25951;
-                    for (var i = 0; i < chunk.Length; i++) {
+                byte[] magicBytes = new byte[4];
+                Array.Copy(chunk, 0, magicBytes, 0, 4);
+                if (!magicBytes.SequenceEqual(UTFMagic)) {
+                    var key = 0x655F;
+                    for (var i = 0x0; i < chunk.Length; i++) {
                         chunk[i] ^= (byte) key;
-                        key *= 16661;
+                        key *= 0x4115;
                     }
                 }
 
                 var header = DecryptUTF(chunk).First();
+                long contentOffset = (long) header["ContentOffset"];
+                if (header.ContainsKey("TocOffset")) {
+                    //read toc
+                }
+
+                if (header.ContainsKey("ItocOffset")) {
+                    uint align = (uint) header["Align"];
+                    //read itoc
+                }
             }
+
+            throw new NotImplementedException();
         }
 
-        public uint ToUInt32<TArray>(TArray value, int index) where TArray : IList<byte>
-        {
-            return (uint) ((value[index] << 24) | (value[index + 1] << 16) | (value[index + 2] << 8) | value[index + 3]);
-        }
+        public uint ToUInt32<TArray>(TArray value, int index) where TArray : IList<byte> => (uint) ((value[index] << 24) | (value[index + 1] << 16) | (value[index + 2] << 8) | value[index + 3]);
 
         public List<Dictionary<string, object>> DecryptUTF(byte[] chunk)
         {
-            byte[] magicBytes = { };
+            byte[] magicBytes = new byte[4];
             Array.Copy(chunk, 0, magicBytes, 0, 4);
             if (!magicBytes.SequenceEqual(UTFMagic))
                 throw new InvalidMagicException();
@@ -60,8 +70,8 @@ namespace ArchiveUnpacker.Unpackers
             using (var ms = new MemoryStream(chunk, 8, chunkSize))
             using (var br = new BinaryReader(ms)) {
                 var rowsOffset = br.ReadInt32BE();
-                var stringsOffset = br.ReadInt32BE() + 8;
-                var dataOffset = br.ReadInt32BE() + 8;
+                var stringsOffset = br.ReadInt32BE();
+                var dataOffset = br.ReadInt32BE();
                 br.ReadBytes(4);
                 int columnCount = br.ReadInt16BE();
                 int rowLength = br.ReadInt16BE();
@@ -76,9 +86,13 @@ namespace ArchiveUnpacker.Unpackers
                     }
 
                     var nameOffset = stringsOffset + br.ReadInt32BE();
-
+                    var posBefore = ms.Position;
+                    
                     ms.Seek(nameOffset, SeekOrigin.Begin);
+
+                    
                     columns.Add(new Column {Flags = (Flags) flags, Name = br.ReadCString()});
+                    ms.Seek(posBefore, SeekOrigin.Begin);
                 }
 
                 var returnTable = new List<Dictionary<string, object>>(rows);
@@ -141,15 +155,9 @@ namespace ArchiveUnpacker.Unpackers
             }
         }
 
-        public static bool IsGameFolder(string folder)
-        {
-            return Directory.GetFiles(folder, "*.cpk").Count(FileStartsWithMagic) > 0;
-        }
+        public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.cpk").Count(FileStartsWithMagic) > 0;
 
-        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory)
-        {
-            return Directory.GetFiles(gameDirectory, "*.cpk").Where(FileStartsWithMagic);
-        }
+        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.cpk").Where(FileStartsWithMagic);
 
         private static bool FileStartsWithMagic(string fileName)
         {

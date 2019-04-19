@@ -2,9 +2,6 @@ using CommandLine;
 
 namespace ArchiveUnpacker.CommandLineParsing
 {
-    /// <summary>
-    /// Extract all files from an archive or game folder
-    /// </summary>
     [Verb("extract", HelpText = "Extract all files from an archive or game folder")]
     public class ExtractOptions
     {

@@ -1,9 +1,9 @@
 using CommandLine;
 
-namespace ArchiveUnpacker.CliArgs
+namespace ArchiveUnpacker.CommandLineParsing
 {
-    [Verb("list", HelpText = "List all files inside an archive or game folder")]
-    public class ListOptions
+    [Verb("detect", HelpText = "Detect the packer for a game folder")]
+    public class DetectOptions
     {
         [Value(0, MetaName = "Game directory", HelpText = "The root directory of the game", Required = true)]
         public string Directory { get; set; }

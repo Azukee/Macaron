@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using ArchiveUnpacker.CliArgs;
+using ArchiveUnpacker.CommandLineParsing;
 using ArchiveUnpacker.Framework;
 using ArchiveUnpacker.Unpackers;
 using CommandLine;

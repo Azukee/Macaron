@@ -1,6 +1,6 @@
 using CommandLine;
 
-namespace ArchiveUnpacker.CliArgs
+namespace ArchiveUnpacker.CommandLineParsing
 {
     /// <summary>
     /// Extract all files from an archive or game folder

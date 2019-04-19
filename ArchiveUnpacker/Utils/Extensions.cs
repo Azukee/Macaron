@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text;
 
@@ -29,6 +30,48 @@ namespace ArchiveUnpacker.Utils
                 ++br.BaseStream.Position;
 
             return name;
+        }
+
+        public static int ReadInt32BE(this BinaryReader br)
+        {
+            var data = br.ReadBytes(4);
+            Array.Reverse(data);
+            return BitConverter.ToInt32(data, 0);
+        }
+        
+        public static uint ReadUInt32BE(this BinaryReader br)
+        {
+            var data = br.ReadBytes(4);
+            Array.Reverse(data);
+            return BitConverter.ToUInt32(data, 0);
+        }
+        
+        public static short ReadInt16BE(this BinaryReader br)
+        {
+            var data = br.ReadBytes(2);
+            Array.Reverse(data);
+            return BitConverter.ToInt16(data, 0);
+        }
+        
+        public static ushort ReadUInt16BE(this BinaryReader br)
+        {
+            var data = br.ReadBytes(2);
+            Array.Reverse(data);
+            return BitConverter.ToUInt16(data, 0);
+        }
+        
+        public static long ReadInt64BE(this BinaryReader br)
+        {
+            var data = br.ReadBytes(8);
+            Array.Reverse(data);
+            return BitConverter.ToInt64(data, 0);
+        }
+        
+        public static float ReadSingleBE(this BinaryReader br)
+        {
+            var data = br.ReadBytes(4);
+            Array.Reverse(data);
+            return BitConverter.ToSingle(data, 0);
         }
     }
 }

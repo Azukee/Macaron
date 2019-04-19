@@ -32,6 +32,20 @@ namespace ArchiveUnpacker.Utils
             return name;
         }
 
+        public static int GetBits(this BinaryReader br, int count, ref int cBits, ref int bits) {
+            while (cBits < count) {
+                int b;
+                if ((b = br.ReadByte()) == -1) 
+                    return -1;
+                bits = (bits << 8) | b;
+                cBits += 8;
+            }
+
+            int rot = (1 << count) - 1;
+            cBits -= count;
+            return (bits >> cBits) & rot;
+        }
+        
         public static int ReadInt32BE(this BinaryReader br)
         {
             var data = br.ReadBytes(4);

@@ -31,16 +31,9 @@ namespace ArchiveUnpacker
                 Extract(new ExtractOptions { Directory = args[0] });
             else
                 Parser.Default.ParseArguments<ExtractOptions, ListOptions, DetectOptions>(args)
-                    .WithParsed(SwitchOnResult);
-        }
-
-        private static void SwitchOnResult(object obj)
-        {
-            switch (obj) {
-                case ExtractOptions o: Extract(o); break;
-                case ListOptions o: List(o); break;
-                case DetectOptions o: Detect(o); break;
-            }
+                    .WithParsed<ExtractOptions>(Extract)
+                    .WithParsed<ListOptions>(List)
+                    .WithParsed<DetectOptions>(Detect);
         }
 
         private static void Extract(ExtractOptions opt)

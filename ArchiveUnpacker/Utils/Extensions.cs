@@ -16,7 +16,7 @@ namespace ArchiveUnpacker.Utils
 
             long startIdx = br.BaseStream.Position;
             for (int i = 0; br.BaseStream.Position < br.BaseStream.Length; i++) {
-                if (br.ReadByte() == 0 && (multiByte && i % 2 == 0))
+                if (br.ReadByte() == 0 && (!multiByte || i % 2 == 0))
                     break;
             }
             long endIdx = br.BaseStream.Position;

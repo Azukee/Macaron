@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using ArchiveUnpacker.CliArgs;
@@ -29,8 +27,11 @@ namespace ArchiveUnpacker
 
         private static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<ExtractOptions, ListOptions, DetectOptions>(args)
-                .WithParsed(SwitchOnResult);
+            if (args.Length == 1 && Directory.Exists(args[0]))
+                Extract(new ExtractOptions { Directory = args[0] });
+            else
+                Parser.Default.ParseArguments<ExtractOptions, ListOptions, DetectOptions>(args)
+                    .WithParsed(SwitchOnResult);
         }
 
         private static void SwitchOnResult(object obj)

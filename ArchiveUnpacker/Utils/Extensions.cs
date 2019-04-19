@@ -12,7 +12,7 @@ namespace ArchiveUnpacker.Utils
             if (enc is null)
                 enc = Encoding.UTF8;
 
-            var multiByte = !enc.IsSingleByte;
+            var multiByte = enc is UnicodeEncoding;
 
             long startIdx = br.BaseStream.Position;
             for (int i = 0; br.BaseStream.Position < br.BaseStream.Length; i++) {

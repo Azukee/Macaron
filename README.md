@@ -1,5 +1,5 @@
 ![MacaronHeader](https://i.imgur.com/OiFhlqw.png)  
-[![Travis](https://img.shields.io/travis/com/Azukee/Macaron.svg)](https://travis-ci.com/Azukee/Macaron)
+[![Travis](https://img.shields.io/travis/com/Azukee/Macaron/master.svg)](https://travis-ci.com/Azukee/Macaron)
 
 Macaron is a tool to unpack various archive types, to see the currently supported archives check the list below.
 

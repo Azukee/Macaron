@@ -16,10 +16,7 @@ namespace ArchiveUnpacker.Unpackers
 
         private readonly byte[] UTFMagic = {0x40, 0x55, 0x54, 0x46};
 
-        public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory)
-        {
-            return GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
-        }
+        public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
         public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive)
         {
@@ -29,28 +26,26 @@ namespace ArchiveUnpacker.Unpackers
                 if (magic != FileMagic)
                     throw new InvalidMagicException();
 
-                Dictionary<int, FileIndex> files = new Dictionary<int, FileIndex>();
+                var files = new Dictionary<int, FileIndex>();
                 br.ReadBytes(0x4);
 
-                byte[] chunk = ReadUTF(br);
+                var chunk = ReadUTF(br);
                 var header = DecryptUTF(chunk).First();
-                long contentOffset = (long) header["ContentOffset"];
+                var contentOffset = (long) header["ContentOffset"];
                 if (header.ContainsKey("TocOffset")) {
-                    long offset = Math.Min(contentOffset, (long) header["TocOffset"]);
-                    
+                    var offset = Math.Min(contentOffset, (long) header["TocOffset"]);
+
                     fs.Seek(offset, SeekOrigin.Begin);
                     var tocMagic = Encoding.ASCII.GetString(br.ReadBytes(4));
                     if (tocMagic != "TOC ")
                         throw new InvalidMagicException();
 
-                    byte[] tocChunk = ReadUTF(br);
+                    var tocChunk = ReadUTF(br);
                     var decrypted = DecryptUTF(tocChunk);
 
                     foreach (var entry in decrypted) {
-                        FileIndex fi = new FileIndex {
-                            id = (int) entry["ID"],
-                            offset = (long) entry["FileOffset"] + offset,
-                            size = (uint) entry["FileSize"]
+                        var fi = new FileIndex {
+                            id = (int) entry["ID"], offset = (long) entry["FileOffset"] + offset, size = (uint) entry["FileSize"]
                         };
                         fi.upSize = fi.size;
                         if (entry.ContainsKey("ExtractSize"))
@@ -63,36 +58,36 @@ namespace ArchiveUnpacker.Unpackers
                 }
 
                 if (header.ContainsKey("ItocOffset")) {
-                    uint align = (uint)(int) header["Align"];
-                    long offset = (long) header["ItocOffset"];
-                    
+                    var align = (uint) (int) header["Align"];
+                    var offset = (long) header["ItocOffset"];
+
                     fs.Seek(offset, SeekOrigin.Begin);
                     var tocMagic = Encoding.ASCII.GetString(br.ReadBytes(4));
                     if (tocMagic != "ITOC")
                         throw new InvalidMagicException();
 
                     br.ReadBytes(4);
-                    byte[] itocChunk = ReadUTF(br);
+                    var itocChunk = ReadUTF(br);
                     var itoc = DecryptUTF(itocChunk).First();
 
                     var dataL = DecryptUTF((byte[]) itoc["DataL"]);
                     var dataH = DecryptUTF((byte[]) itoc["DataH"]);
 
                     foreach (var entry in dataL.Concat(dataH)) {
-                        int id = (int) entry["ID"];
+                        var id = (int) entry["ID"];
                         FileIndex fi;
-                        if (!files.TryGetValue (id, out fi)) {
-                            fi = new FileIndex { id = id };
+                        if (!files.TryGetValue(id, out fi)) {
+                            fi = new FileIndex {id = id};
                             files[id] = fi;
                         }
 
-                        fi.size = (uint)(int) entry["FileSize"];
+                        fi.size = (uint) (int) entry["FileSize"];
                         fi.upSize = fi.size;
                         if (entry.ContainsKey("ExtractSize"))
-                            fi.upSize = (uint)(int) entry["ExtractSize"];
+                            fi.upSize = (uint) (int) entry["ExtractSize"];
                     }
 
-                    long currPos = contentOffset;
+                    var currPos = contentOffset;
                     foreach (var id in files.Keys.OrderBy(x => x)) {
                         var entry = files[id];
                         entry.offset = currPos;
@@ -103,22 +98,23 @@ namespace ArchiveUnpacker.Unpackers
                                 currPos += align - remainder;
                         }
 
-                        if (entry.name == null) 
+                        if (entry.name == null)
                             entry.name = id.ToString("D5");
                     }
-
                 }
-                
-                //This is *NOT* correct, this is just a placeholder
-                foreach(FileIndex fi in files.Values)
+
+                //This will write the file formats from the criware middleware
+                //we currently don't have support to convert their formats into "useable" formats, use other tools for that
+                foreach (var fi in files.Values)
                     yield return new FileSlice(fi.name, fi.offset, fi.size, inputArchive);
             }
         }
 
-        private byte[] ReadUTF(BinaryReader br) {
+        private byte[] ReadUTF(BinaryReader br)
+        {
             var chunkSize = br.ReadInt64();
             var chunk = br.ReadBytes((int) chunkSize);
-            byte[] magicBytes = new byte[4];
+            var magicBytes = new byte[4];
             Array.Copy(chunk, 0, magicBytes, 0, 4);
             if (!magicBytes.SequenceEqual(UTFMagic)) {
                 var key = 0x655F;
@@ -135,7 +131,7 @@ namespace ArchiveUnpacker.Unpackers
 
         private List<Dictionary<string, object>> DecryptUTF(byte[] chunk)
         {
-            byte[] magicBytes = new byte[4];
+            var magicBytes = new byte[4];
             Array.Copy(chunk, 0, magicBytes, 0, 4);
             if (!magicBytes.SequenceEqual(UTFMagic))
                 throw new InvalidMagicException();
@@ -162,22 +158,17 @@ namespace ArchiveUnpacker.Unpackers
 
                     var nameOffset = stringsOffset + br.ReadInt32BE();
                     var posBefore = ms.Position;
-                    
-                    StringBuilder name = new StringBuilder();
-                    
+
+
                     ms.Seek(nameOffset, SeekOrigin.Begin);
-                    char c;
-                    while ((c = br.ReadChar()) != 0x00)
-                        name.Append(c);
-                    columns.Add(new Column {Flags = (Flags) flags, Name = name.ToString()});
+                    columns.Add(new Column {Flags = (Flags) flags, Name = br.ReadCString()});
                     ms.Seek(posBefore, SeekOrigin.Begin);
                 }
 
+                //reading rows
                 var returnTable = new List<Dictionary<string, object>>(rows);
-                var nextOffset = rowsOffset;
                 for (var i = 0; i < rows; i++) {
-                    ms.Seek(nextOffset, SeekOrigin.Begin);
-                    nextOffset += rowLength;
+                    ms.Seek(rowsOffset + i * rowLength, SeekOrigin.Begin);
 
                     var row = new Dictionary<string, object>(columnCount);
                     returnTable.Add(row);
@@ -218,11 +209,9 @@ namespace ArchiveUnpacker.Unpackers
                                 break;
                             }
                             case Flags.Data: {
-                                var posBefore = ms.Position;
                                 var offset = dataOffset + br.ReadInt32BE();
                                 var length = br.ReadInt32BE();
                                 row[column.Name] = chunk.Skip(offset).Take(length).ToArray();
-                                ms.Seek(posBefore, SeekOrigin.Begin);
                                 break;
                             }
                         }
@@ -232,7 +221,7 @@ namespace ArchiveUnpacker.Unpackers
                 return returnTable;
             }
         }
-        
+
         public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.cpk").Count(FileStartsWithMagic) > 0;
 
         private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.cpk").Where(FileStartsWithMagic);
@@ -248,22 +237,23 @@ namespace ArchiveUnpacker.Unpackers
             }
         }
 
-        class Column
+        private class Column
         {
             public Flags Flags;
             public string Name;
         }
-        
-        class FileIndex {
+
+        private class FileIndex
+        {
             public int id;
+            public string name;
             public long offset;
             public uint size;
             public uint upSize;
-            public string name;
         }
 
         [Flags]
-        enum Flags : byte
+        private enum Flags : byte
         {
             StorageMask = 0xF0, StorageNone = 0x00, StorageZero = 0x10,
             StorageConstant = 0x30, Mask = 0x0F, Byte = 0x00,
@@ -273,6 +263,4 @@ namespace ArchiveUnpacker.Unpackers
             String = 0x0A, Data = 0x0B
         }
     }
-
-    
 }

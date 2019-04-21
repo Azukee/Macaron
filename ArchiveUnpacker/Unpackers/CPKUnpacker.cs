@@ -222,9 +222,9 @@ namespace ArchiveUnpacker.Unpackers
             }
         }
 
-        public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.cpk").Count(FileStartsWithMagic) > 0;
+        public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.cpk", SearchOption.AllDirectories).Count(FileStartsWithMagic) > 0;
 
-        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.cpk").Where(FileStartsWithMagic);
+        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.cpk", SearchOption.AllDirectories).Where(FileStartsWithMagic);
 
         private static bool FileStartsWithMagic(string fileName)
         {

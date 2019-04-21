@@ -99,7 +99,7 @@ namespace ArchiveUnpacker.Unpackers
                         }
 
                         if (entry.name == null)
-                            entry.name = id.ToString("D5");
+                            entry.name = Path.Combine(Path.GetFileNameWithoutExtension(inputArchive), id.ToString("D5"));
                     }
                 }
 

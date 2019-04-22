@@ -10,7 +10,7 @@ using ArchiveUnpacker.Utils;
 
 namespace ArchiveUnpacker.Unpackers
 {
-    public class CPKUnpacker : IUnpacker
+    public class CriUnpacker : IUnpacker
     {
         private const string FileMagic = "CPK ";
         private const string UTFMagic = "@UTF";

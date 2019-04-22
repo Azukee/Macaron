@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using ArchiveUnpacker.CommandLine.CommandLineParsing;
@@ -62,6 +62,11 @@ namespace ArchiveUnpacker.CommandLine
             // Get unpacker
             var unpacker = UnpackerRegistry.Get(opt.Directory);
 
+            if (unpacker is null) {
+                Console.WriteLine("Couldn't find an unpacker for this game/engine.");
+                return;
+            }
+
             foreach (IExtractableFile file in unpacker.LoadFiles(opt.Directory).OrderBy(x => x.Path))
                 Console.WriteLine(file.Path);
         }
@@ -70,6 +75,12 @@ namespace ArchiveUnpacker.CommandLine
         {
             // Get unpacker
             var unpacker = UnpackerRegistry.Get(opt.Directory);
+
+            if (unpacker is null) {
+                Console.WriteLine("Couldn't find an unpacker for this game/engine.");
+                return;
+            }
+
             Console.WriteLine(unpacker.GetType().Name);
         }
     }

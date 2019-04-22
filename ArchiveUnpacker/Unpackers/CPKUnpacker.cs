@@ -13,8 +13,7 @@ namespace ArchiveUnpacker.Unpackers
     public class CPKUnpacker : IUnpacker
     {
         private const string FileMagic = "CPK ";
-
-        private readonly byte[] UTFMagic = {0x40, 0x55, 0x54, 0x46};
+        private const string UTFMagic = "@UTF";
 
         public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
@@ -75,8 +74,7 @@ namespace ArchiveUnpacker.Unpackers
 
                     foreach (var entry in dataL.Concat(dataH)) {
                         var id = (int) entry["ID"];
-                        FileIndex fi;
-                        if (!files.TryGetValue(id, out fi)) {
+                        if (!files.TryGetValue(id, out FileIndex fi)) {
                             fi = new FileIndex {id = id};
                             files[id] = fi;
                         }
@@ -110,13 +108,11 @@ namespace ArchiveUnpacker.Unpackers
             }
         }
 
-        private byte[] ReadUTF(BinaryReader br)
+        private static byte[] ReadUTF(BinaryReader br)
         {
             var chunkSize = br.ReadInt64();
             var chunk = br.ReadBytes((int) chunkSize);
-            var magicBytes = new byte[4];
-            Array.Copy(chunk, 0, magicBytes, 0, 4);
-            if (!magicBytes.SequenceEqual(UTFMagic)) {
+            if (Encoding.ASCII.GetString(chunk, 0, UTFMagic.Length) != UTFMagic) {
                 var key = 0x655F;
                 for (var i = 0x0; i < chunk.Length; i++) {
                     chunk[i] ^= (byte) key;
@@ -127,13 +123,11 @@ namespace ArchiveUnpacker.Unpackers
             return chunk;
         }
 
-        public uint ToUInt32<TArray>(TArray value, int index) where TArray : IList<byte> => (uint) ((value[index] << 24) | (value[index + 1] << 16) | (value[index + 2] << 8) | value[index + 3]);
+        public static uint ToUInt32<TArray>(TArray value, int index) where TArray : IList<byte> => (uint) ((value[index] << 24) | (value[index + 1] << 16) | (value[index + 2] << 8) | value[index + 3]);
 
         private List<Dictionary<string, object>> DecryptUTF(byte[] chunk)
         {
-            var magicBytes = new byte[4];
-            Array.Copy(chunk, 0, magicBytes, 0, 4);
-            if (!magicBytes.SequenceEqual(UTFMagic))
+            if (Encoding.ASCII.GetString(chunk, 0, UTFMagic.Length) != UTFMagic)
                 throw new InvalidMagicException();
 
             var chunkSize = (int) ToUInt32(chunk, 4);
@@ -224,7 +218,7 @@ namespace ArchiveUnpacker.Unpackers
 
         public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.cpk", SearchOption.AllDirectories).Count(FileStartsWithMagic) > 0;
 
-        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.cpk", SearchOption.AllDirectories).Where(FileStartsWithMagic);
+        private static IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.cpk", SearchOption.AllDirectories).Where(FileStartsWithMagic);
 
         private static bool FileStartsWithMagic(string fileName)
         {

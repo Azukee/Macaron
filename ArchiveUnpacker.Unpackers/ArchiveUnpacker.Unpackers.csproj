@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <LangVersion>7.3</LangVersion>
+        <AssemblyName>Macaron.Unpackers</AssemblyName>
+        <Title>Macaron Built-In Unpackers</Title>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ArchiveUnpacker.Core\ArchiveUnpacker.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="TriggersTools.Windows.Resources" Version="1.0.2-build-000011" />
+    </ItemGroup>
+
+</Project>

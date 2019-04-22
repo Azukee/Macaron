@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace ArchiveUnpacker.Core.Framework
+namespace ArchiveUnpacker.Core
 {
     public interface IExtractableFile
     {

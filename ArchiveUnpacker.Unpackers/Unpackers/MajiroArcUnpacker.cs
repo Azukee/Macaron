@@ -8,12 +8,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using ArchiveUnpacker.Core.Framework;
-using ArchiveUnpacker.Core.Framework.Exceptions;
-using ArchiveUnpacker.Core.Framework.ExtractableFileTypes;
-using ArchiveUnpacker.Core.Utils;
+using ArchiveUnpacker.Core;
+using ArchiveUnpacker.Core.Exceptions;
+using ArchiveUnpacker.Core.ExtractableFileTypes;
+using ArchiveUnpacker.Unpackers.Utils;
 
-namespace ArchiveUnpacker.Core.Unpackers
+namespace ArchiveUnpacker.Unpackers.Unpackers
 {
     public class MajiroArcUnpacker : IUnpacker
     {

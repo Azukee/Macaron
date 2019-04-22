@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace ArchiveUnpacker.Core.Utils.Pickle
+namespace ArchiveUnpacker.Unpackers.Utils.Pickle
 {
     public static class PickleReader
     {

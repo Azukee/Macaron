@@ -1,7 +1,7 @@
-using ArchiveUnpacker.Core.Framework;
-using ArchiveUnpacker.Core.Unpackers;
+using ArchiveUnpacker.Core;
+using ArchiveUnpacker.Unpackers.Unpackers;
 
-namespace ArchiveUnpacker.Core
+namespace ArchiveUnpacker.Unpackers
 {
     public static class BuiltInUnpackers
     {

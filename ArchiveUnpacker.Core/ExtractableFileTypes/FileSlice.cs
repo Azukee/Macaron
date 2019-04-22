@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace ArchiveUnpacker.Core.Framework.ExtractableFileTypes
+namespace ArchiveUnpacker.Core.ExtractableFileTypes
 {
     public class FileSlice : IExtractableFile
     {

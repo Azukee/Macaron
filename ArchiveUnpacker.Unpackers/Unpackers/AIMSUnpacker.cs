@@ -8,11 +8,11 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using ArchiveUnpacker.Core.EncryptionSchemes;
-using ArchiveUnpacker.Core.Framework;
-using ArchiveUnpacker.Core.Framework.Exceptions;
+using ArchiveUnpacker.Core;
+using ArchiveUnpacker.Core.Exceptions;
+using ArchiveUnpacker.Unpackers.EncryptionSchemes;
 
-namespace ArchiveUnpacker.Core.Unpackers
+namespace ArchiveUnpacker.Unpackers.Unpackers
 {
     public class AIMSUnpacker : IUnpacker
     {

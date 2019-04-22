@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ArchiveUnpacker.Core.Framework
+namespace ArchiveUnpacker.Core
 {
     public interface IUnpacker
     {

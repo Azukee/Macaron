@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ArchiveUnpacker.Core.Framework
+namespace ArchiveUnpacker.Core
 {
     public static class UnpackerRegistry
     {

@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace ArchiveUnpacker.Core.Utils
+namespace ArchiveUnpacker.Unpackers.Utils
 {
     public static class Extensions
     {

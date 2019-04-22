@@ -1,9 +1,9 @@
 // ReSharper disable All
 
 using System.Runtime.CompilerServices;
-using ArchiveUnpacker.Core.Unpackers;
+using ArchiveUnpacker.Unpackers.Unpackers;
 
-namespace ArchiveUnpacker.Core.Utils
+namespace ArchiveUnpacker.Unpackers.Utils
 {
 	/// <summary>
 	/// MersenneTwister implementation, used for <see cref="CatSystem2Unpacker"/>.

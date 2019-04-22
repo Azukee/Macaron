@@ -11,12 +11,12 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using ArchiveUnpacker.Core.Framework;
-using ArchiveUnpacker.Core.Framework.Exceptions;
-using ArchiveUnpacker.Core.Framework.ExtractableFileTypes;
-using ArchiveUnpacker.Core.Utils.Pickle;
+using ArchiveUnpacker.Core;
+using ArchiveUnpacker.Core.Exceptions;
+using ArchiveUnpacker.Core.ExtractableFileTypes;
+using ArchiveUnpacker.Unpackers.Utils.Pickle;
 
-namespace ArchiveUnpacker.Core.Unpackers
+namespace ArchiveUnpacker.Unpackers.Unpackers
 {
     /// <summary>
     /// Unpacks files from VNs created using the Ren'Py engine.

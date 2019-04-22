@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 
-namespace ArchiveUnpacker.Core.Framework.ExtractableFileTypes
+namespace ArchiveUnpacker.Core.ExtractableFileTypes
 {
     public class EncryptedFileSlice : FileSlice
     {

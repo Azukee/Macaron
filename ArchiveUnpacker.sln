@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchiveUnpacker.Core", "Arc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchiveUnpacker.CommandLine", "ArchiveUnpacker.CommandLine\ArchiveUnpacker.CommandLine.csproj", "{EA141270-0CB6-45E0-847D-0A131FDDDE7E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchiveUnpacker.Unpackers", "ArchiveUnpacker.Unpackers\ArchiveUnpacker.Unpackers.csproj", "{536B219B-4B9D-475A-B869-83B466B084B3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{EA141270-0CB6-45E0-847D-0A131FDDDE7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EA141270-0CB6-45E0-847D-0A131FDDDE7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EA141270-0CB6-45E0-847D-0A131FDDDE7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{536B219B-4B9D-475A-B869-83B466B084B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{536B219B-4B9D-475A-B869-83B466B084B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{536B219B-4B9D-475A-B869-83B466B084B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{536B219B-4B9D-475A-B869-83B466B084B3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using ArchiveUnpacker.CommandLine.CommandLineParsing;
 using ArchiveUnpacker.Core;
-using ArchiveUnpacker.Core.Framework;
+using ArchiveUnpacker.Unpackers;
 using CommandLine;
 
 namespace ArchiveUnpacker.CommandLine

@@ -1,4 +1,4 @@
-namespace ArchiveUnpacker.Core.Utils.Pickle
+namespace ArchiveUnpacker.Unpackers.Utils.Pickle
 {
     public enum PickleOpcode
     {

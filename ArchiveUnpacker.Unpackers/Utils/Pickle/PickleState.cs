@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace ArchiveUnpacker.Core.Utils.Pickle
+namespace ArchiveUnpacker.Unpackers.Utils.Pickle
 {
     /// <remarks>
     /// For reference: https://github.com/python/cpython/blob/master/Lib/pickle.py

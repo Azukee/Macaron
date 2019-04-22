@@ -5,7 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace ArchiveUnpacker.Core.EncryptionSchemes
+namespace ArchiveUnpacker.Unpackers.EncryptionSchemes
 {
     /// <summary>
     ///     Credits to Elskom for their BlowFish repo, licensed under the MIT license.

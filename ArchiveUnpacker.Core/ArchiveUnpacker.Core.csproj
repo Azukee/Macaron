@@ -7,8 +7,4 @@
         <Title>Macaron Core</Title>
     </PropertyGroup>
 
-    <ItemGroup>
-      <PackageReference Include="TriggersTools.Windows.Resources" Version="1.0.2-build-000011" />
-    </ItemGroup>
-
 </Project>

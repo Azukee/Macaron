@@ -7,11 +7,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using ArchiveUnpacker.Core.Framework;
-using ArchiveUnpacker.Core.Framework.Exceptions;
-using ArchiveUnpacker.Core.Framework.ExtractableFileTypes;
+using ArchiveUnpacker.Core;
+using ArchiveUnpacker.Core.Exceptions;
+using ArchiveUnpacker.Core.ExtractableFileTypes;
 
-namespace ArchiveUnpacker.Core.Unpackers
+namespace ArchiveUnpacker.Unpackers.Unpackers
 {
     public class HyPackUnpacker : IUnpacker
     {

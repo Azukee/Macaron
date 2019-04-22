@@ -8,10 +8,10 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
-using ArchiveUnpacker.Core.Framework;
-using ArchiveUnpacker.Core.Framework.Exceptions;
+using ArchiveUnpacker.Core;
+using ArchiveUnpacker.Core.Exceptions;
 
-namespace ArchiveUnpacker.Core.Unpackers
+namespace ArchiveUnpacker.Unpackers.Unpackers
 {
     public class NekoPackUnpacker : IUnpacker
     {

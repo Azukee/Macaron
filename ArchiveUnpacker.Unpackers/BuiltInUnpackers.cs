@@ -5,8 +5,6 @@ namespace ArchiveUnpacker.Unpackers
 {
     public static class BuiltInUnpackers
     {
-        private const string ExtractDirectory = "Extracted";
-
         public static void RegisterAll()
         {
             // Register all types

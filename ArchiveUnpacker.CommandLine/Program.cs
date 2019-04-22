@@ -14,8 +14,7 @@ namespace ArchiveUnpacker.CommandLine
 
         private static void Main(string[] args)
         {
-            // register the built-in unpacker
-            // TODO: move these to a separate project
+            // register the built-in unpackers
             BuiltInUnpackers.RegisterAll();
 
             if (args.Length == 1 && Directory.Exists(args[0]))
@@ -63,9 +62,8 @@ namespace ArchiveUnpacker.CommandLine
             // Get unpacker
             var unpacker = UnpackerRegistry.Get(opt.Directory);
 
-            foreach (IExtractableFile file in unpacker.LoadFiles(opt.Directory).OrderBy(x => x.Path)) {
+            foreach (IExtractableFile file in unpacker.LoadFiles(opt.Directory).OrderBy(x => x.Path))
                 Console.WriteLine(file.Path);
-            }
         }
 
         private static void Detect(DetectOptions opt)

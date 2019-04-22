@@ -23,6 +23,7 @@ namespace ArchiveUnpacker
             UnpackerRegistry.Register<AdvHDUnpacker>(AdvHDUnpacker.IsGameFolder);
             UnpackerRegistry.Register<HyPackUnpacker>(HyPackUnpacker.IsGameFolder);
             UnpackerRegistry.Register<NekoPackUnpacker>(NekoPackUnpacker.IsGameFolder);
+            UnpackerRegistry.Register<CriUnpacker>(CriUnpacker.IsGameFolder);
         }
 
         private static void Main(string[] args)

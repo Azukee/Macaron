@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchiveUnpacker", "ArchiveUnpacker\ArchiveUnpacker.csproj", "{37ABFAFB-2A34-4A88-B08E-7FB9076B7C6D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchiveUnpacker.Core", "ArchiveUnpacker.Core\ArchiveUnpacker.Core.csproj", "{37ABFAFB-2A34-4A88-B08E-7FB9076B7C6D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchiveUnpacker.CommandLine", "ArchiveUnpacker.CommandLine\ArchiveUnpacker.CommandLine.csproj", "{EA141270-0CB6-45E0-847D-0A131FDDDE7E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +14,9 @@ Global
 		{37ABFAFB-2A34-4A88-B08E-7FB9076B7C6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37ABFAFB-2A34-4A88-B08E-7FB9076B7C6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37ABFAFB-2A34-4A88-B08E-7FB9076B7C6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA141270-0CB6-45E0-847D-0A131FDDDE7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA141270-0CB6-45E0-847D-0A131FDDDE7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA141270-0CB6-45E0-847D-0A131FDDDE7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA141270-0CB6-45E0-847D-0A131FDDDE7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

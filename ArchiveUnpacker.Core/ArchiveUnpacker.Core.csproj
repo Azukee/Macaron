@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <LangVersion>7.3</LangVersion>
+        <AssemblyName>Macaron.Core</AssemblyName>
+        <Title>Macaron Core</Title>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="TriggersTools.Windows.Resources" Version="1.0.2-build-000011" />
+    </ItemGroup>
+
+</Project>

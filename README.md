@@ -15,7 +15,7 @@ Macaron is a tool to unpack various archive types, to see the currently supporte
 | ? (Majiro Arc) | .arc      | Ame no Marginal                             | |
 | ? (NekoPack)   | .pak      | Funbag Fantasy                              | |
 | Ren'Py         | .rpa      | Wolf Tails<br>The Sakura Series             | |
-| CriWare Middleware | .cpk  | Root Double -Before Crime After Days-       | Initial support, see Macaron#12 |
+| CriWare Middleware | .cpk  | Root Double -Before Crime After Days-       | Initial support, see [#12](../../issues/12) |
 
 ## Credits
 Programmed and maintained by: [Azukee](https://github.com/Azukee) and [HoLLy](https://github.com/HoLLy-HaCKeR)

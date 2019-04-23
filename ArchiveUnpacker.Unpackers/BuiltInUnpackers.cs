@@ -17,6 +17,7 @@ namespace ArchiveUnpacker.Unpackers
             UnpackerRegistry.Register<HyPackUnpacker>(HyPackUnpacker.IsGameFolder);
             UnpackerRegistry.Register<NekoPackUnpacker>(NekoPackUnpacker.IsGameFolder);
             UnpackerRegistry.Register<CriUnpacker>(CriUnpacker.IsGameFolder);
+            UnpackerRegistry.Register<KirikiriUnpacker>(KirikiriUnpacker.IsGameFolder);
         }
     }
 }

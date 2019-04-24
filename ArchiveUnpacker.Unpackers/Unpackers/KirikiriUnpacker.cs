@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using ArchiveUnpacker.Core;
 using ArchiveUnpacker.Core.Exceptions;
 using ArchiveUnpacker.Core.ExtractableFileTypes;
+using ArchiveUnpacker.Unpackers.Utils;
 
 namespace ArchiveUnpacker.Unpackers.Unpackers
 {
@@ -45,36 +47,85 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                 }
                 
                 var entries = new List<Entry>();
+                var fileOffset = 0;
+                
+                var Map = new Mapper();
                 using (var ms = new MemoryStream(indexBytes, 0, indexBytes.Length))
                 using (var mbr = new BinaryReader(ms, Encoding.Unicode)) {
-                    uint entryMagic = mbr.ReadUInt32();
-                    long entrySize = mbr.ReadInt64();
-
-                    if (entryMagic == 0x656C6946) {
-                        var entry = new Entry();
-                        while (entrySize > 0) {
-                            uint sectionMagic = mbr.ReadUInt32();
-                            long sectionSize = mbr.ReadInt64();
-                            entrySize -= 12;
-                            if (sectionSize > entrySize) {
-                                // fix info sections with wrongly assigned size
-                                if (sectionMagic == 0x6F666E69)
-                                    sectionSize = entrySize;
+                    while (mbr.PeekChar() != -1) {
+                        var entryMagic = Encoding.ASCII.GetString(mbr.ReadBytes(4));
+                        long entrySize = mbr.ReadInt64();
+    
+                        fileOffset += 12 + (int)entrySize;
+                        if (entryMagic == "File") { // File
+                            var entry = new Entry();
+                            while (entrySize > 0) {
+                                var sectionMagic = Encoding.ASCII.GetString(mbr.ReadBytes(4));
+                                long sectionSize = mbr.ReadInt64();
+                                entrySize -= 12;
+                                if (sectionSize > entrySize) {
+                                    // fix info sections with wrongly assigned size
+                                    if (sectionMagic == "info")
+                                        sectionSize = entrySize;
+                                }
+    
+                                entrySize -= sectionSize;
+                                long nextSection = ms.Position + sectionSize;
+                                switch (sectionMagic) {
+                                    case "info":
+                                        entry.Encrypted = 0 != mbr.ReadUInt32();
+                                        long fileSize = mbr.ReadInt64();
+                                        long compressedSize = mbr.ReadInt64();
+                                        entry.IsCompressed = fileSize != compressedSize;
+                                        entry.Size = (uint) compressedSize;
+                                        entry.UnpackedSize = (uint) fileSize;
+                                        
+                                        string path = new string(mbr.ReadChars(mbr.ReadInt16()));
+                                        if (Map.Count > 0)
+                                            path = Map.GetFromMap(entry.Hash, path);
+                                        entry.Path = path;
+                                        break;
+                                    case "segm":
+                                        int segAmount = (int) (sectionSize / 28);
+                                        if (segAmount > 0) {
+                                            for (int i = 0; i < segAmount; i++) {
+                                                bool compressed = 0 != mbr.ReadUInt32();
+                                                long segOffset = mbr.ReadInt64();
+                                                long segSize = mbr.ReadInt64();
+                                                long segCompressedSize = mbr.ReadInt64();
+                                                entry.Segments.Add(new Segment {
+                                                    Compressed = compressed,
+                                                    CompressedSize = (uint)segCompressedSize,
+                                                    Offset = segOffset,
+                                                    Size = (uint) segSize
+                                                });
+                                            }
+                                            entry.Offset = entry.Segments.FirstOrDefault().Offset;
+                                        }
+                                        break;
+                                    case "adlr":
+                                        if (sectionSize == 4)
+                                            entry.Hash = mbr.ReadUInt32();
+                                        break;
+                                }
+                                ms.Seek(nextSection, SeekOrigin.Begin);
                             }
-
-                            entrySize -= sectionSize;
-                            long nextSection = ms.Position + sectionSize;
-                            switch (sectionMagic) {
-                                case 0x6F666E69: // info
-                                    break;
-                                case 0x6D676573: // "segm"
-                                    break;
-                                case 0x726C6461: // "adlr"
-                                    break;
-                            }
-
-                            ms.Seek(nextSection, SeekOrigin.Begin);
+                            if (entry.Path != "")
+                                entries.Add(entry);
                         }
+                        else if (entryMagic == "hnfn" || entryMagic == "smil" || entryMagic == "eliF" || entryMagic == "Yuzu" || entryMagic == "neko") {
+                            uint hash = mbr.ReadUInt32();
+                            int nameLength = mbr.ReadInt16();
+                            if (nameLength != 0) {
+                                entrySize -= 6;
+                                if (nameLength * 2 <= entrySize) {
+                                    var fileName = new string(mbr.ReadChars(nameLength));
+                                    Map.AddToMap(hash, fileName);
+                                }
+                            }
+                        }
+    
+                        ms.Seek(fileOffset, SeekOrigin.Begin);
                     }
                 }
                 
@@ -105,11 +156,54 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
             public uint CompressedSize;
         }
         
-        private class Entry 
+        private class Entry
         {
-            public bool Encrypted { get; set; }
-            public List<Segment> Segments { get; set; }
-            public uint Hash { get; set; }
+            List<Segment> _Segments = new List<Segment>();
+            
+            public bool Encrypted;
+            public List<Segment> Segments => _Segments;
+            public uint Hash;
+            public uint Size;
+            public bool IsCompressed;
+            public uint UnpackedSize;
+            public string Path;
+            public long Offset;
+        }
+
+        private sealed class Mapper
+        {
+            Dictionary<uint, string> hashMap = new Dictionary<uint, string>();
+            Dictionary<string, string> md5Map = new Dictionary<string, string>();
+            MD5 md5Imp = MD5.Create();
+            StringBuilder md5String = new StringBuilder();
+
+            public int Count => md5Map.Count;
+            
+            public void AddToMap(uint hash, string file)
+            {
+                if (!hashMap.ContainsKey(hash))
+                    hashMap[hash] = file;
+                md5Map[GetHash(file)] = file;
+            }
+            
+            public string GetFromMap(uint hash, string md5)
+            {
+                string file;
+                if (md5Map.TryGetValue(md5, out file))
+                    return file;
+                if (hashMap.TryGetValue(hash, out file))
+                    return file;
+                return md5;
+            }
+            
+            private string GetHash(string text)
+            {
+                var md5 = md5Imp.ComputeHash(Encoding.Unicode.GetBytes(text.ToLower()));
+                md5String.Clear();
+                for (int i = 0; i < md5.Length; ++i)
+                    md5String.AppendFormat("{0:x2}", md5[i]);
+                return md5String.ToString();
+            }
         }
     }
 }

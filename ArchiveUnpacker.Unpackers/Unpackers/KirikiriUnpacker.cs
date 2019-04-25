@@ -1,14 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Security.Cryptography;
 using System.Text;
 using ArchiveUnpacker.Core;
 using ArchiveUnpacker.Core.Exceptions;
-using ArchiveUnpacker.Core.ExtractableFileTypes;
-using ArchiveUnpacker.Unpackers.Utils;
 
 namespace ArchiveUnpacker.Unpackers.Unpackers
 {
@@ -16,8 +14,7 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
     {
         private const string FileMagic = "XP3\r";
 
-        public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) =>
-            GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
+        public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
         public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive)
         {
@@ -28,18 +25,18 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                     throw new InvalidMagicException();
 
                 br.ReadBytes(28); // 28 unknown bytes
-                long indexOffset = br.ReadInt64();
+                var indexOffset = br.ReadInt64();
 
                 byte[] indexBytes;
                 fs.Seek(indexOffset, SeekOrigin.Begin);
-                bool isPacked = br.ReadBoolean();
-                if (!isPacked)
+                var isPacked = br.ReadBoolean();
+                if (!isPacked) {
                     indexBytes = br.ReadBytes((int) br.ReadInt64());
-                else {
-                    long compressedSize = br.ReadInt64();
-                    long indexSize = br.ReadInt64();
+                } else {
+                    var compressedSize = br.ReadInt64();
+                    var indexSize = br.ReadInt64();
                     br.ReadBytes(2); // skip zlib parameters (happy holly? c:)
-                    byte[] compressedBytes = br.ReadBytes((int) compressedSize);
+                    var compressedBytes = br.ReadBytes((int) compressedSize);
                     using (var ms = new MemoryStream(compressedBytes, 0, compressedBytes.Length))
                     using (var decStream = new DeflateStream(ms, CompressionMode.Decompress, true)) {
                         indexBytes = new byte[indexSize];
@@ -55,7 +52,7 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                 using (var mbr = new BinaryReader(ms, Encoding.Unicode)) {
                     while (mbr.PeekChar() != -1) {
                         var entryMagic = Encoding.ASCII.GetString(mbr.ReadBytes(4));
-                        long entrySize = mbr.ReadInt64();
+                        var entrySize = mbr.ReadInt64();
 
                         fileOffset += 12 + (int) entrySize;
                         if (entryMagic == "File") {
@@ -63,38 +60,36 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                             var entry = new Entry();
                             while (entrySize > 0) {
                                 var sectionMagic = Encoding.ASCII.GetString(mbr.ReadBytes(4));
-                                long sectionSize = mbr.ReadInt64();
+                                var sectionSize = mbr.ReadInt64();
                                 entrySize -= 12;
-                                if (sectionSize > entrySize) {
-                                    // fix info sections with wrongly assigned size
+                                if (sectionSize > entrySize)
                                     if (sectionMagic == "info")
                                         sectionSize = entrySize;
-                                }
 
                                 entrySize -= sectionSize;
-                                long nextSection = ms.Position + sectionSize;
+                                var nextSection = ms.Position + sectionSize;
                                 switch (sectionMagic) {
                                     case "info":
                                         entry.Encrypted = 0 != mbr.ReadUInt32();
-                                        long fileSize = mbr.ReadInt64();
-                                        long compressedSize = mbr.ReadInt64();
+                                        var fileSize = mbr.ReadInt64();
+                                        var compressedSize = mbr.ReadInt64();
                                         entry.IsCompressed = fileSize != compressedSize;
                                         entry.Size = (uint) compressedSize;
                                         entry.UnpackedSize = (uint) fileSize;
 
-                                        string path = new string(mbr.ReadChars(mbr.ReadInt16()));
+                                        var path = new string(mbr.ReadChars(mbr.ReadInt16()));
                                         if (Map.Count > 0)
                                             path = Map.GetFromMap(entry.Hash, path);
                                         entry.Path = path;
                                         break;
                                     case "segm":
-                                        int segAmount = (int) (sectionSize / 28);
+                                        var segAmount = (int) (sectionSize / 28);
                                         if (segAmount > 0) {
-                                            for (int i = 0; i < segAmount; i++) {
-                                                bool compressed = 0 != mbr.ReadUInt32();
-                                                long segOffset = mbr.ReadInt64();
-                                                long segSize = mbr.ReadInt64();
-                                                long segCompressedSize = mbr.ReadInt64();
+                                            for (var i = 0; i < segAmount; i++) {
+                                                var compressed = 0 != mbr.ReadUInt32();
+                                                var segOffset = mbr.ReadInt64();
+                                                var segSize = mbr.ReadInt64();
+                                                var segCompressedSize = mbr.ReadInt64();
                                                 entry.Segments.Add(new Segment {
                                                     Compressed = compressed,
                                                     CompressedSize = (uint) segCompressedSize,
@@ -120,7 +115,7 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                                 entries.Add(entry);
                         } else if (entryMagic == "hnfn" || entryMagic == "smil" || entryMagic == "eliF" || entryMagic == "Yuzu" ||
                                    entryMagic == "neko") {
-                            uint hash = mbr.ReadUInt32();
+                            var hash = mbr.ReadUInt32();
                             int nameLength = mbr.ReadInt16();
                             if (nameLength != 0) {
                                 entrySize -= 6;
@@ -135,30 +130,15 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                     }
                 }
 
-                foreach (Entry entry in entries) {
-                    // this check here is to prevent the program failing extracting "pseudo" files
-                    if (entry.Path.Length < 100) {
-                        fs.Seek(entry.Offset, SeekOrigin.Begin);
-                        byte[] compressedBytes = br.ReadBytes((int) entry.Size);
-                        byte[] uncompressedBytes = new byte[entry.UnpackedSize];
-                        if (entry.IsCompressed) {
-                            using (var ms = new MemoryStream(compressedBytes, 2, compressedBytes.Length - 2))
-                            using (var decStream = new DeflateStream(ms, CompressionMode.Decompress, true))
-                                decStream.Read(uncompressedBytes, 0, uncompressedBytes.Length);
-                        } else
-                            uncompressedBytes = compressedBytes;
-
-                        yield return new KirikiriFile(entry.Path, uncompressedBytes);
-                    }
-                }
+                foreach (var entry in entries)
+                    if (entry.Path.Length < 100)
+                        yield return new KirikiriFile(entry.Path, entry.Offset, entry.Size, entry.UnpackedSize, inputArchive);
             }
         }
 
-        public static bool IsGameFolder(string folder) =>
-            Directory.GetFiles(folder, "*.xp3", SearchOption.AllDirectories).Count(FileStartsWithMagic) > 0;
+        public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.xp3", SearchOption.AllDirectories).Count(FileStartsWithMagic) > 0;
 
-        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) =>
-            Directory.GetFiles(gameDirectory, "*.xp3", SearchOption.AllDirectories).Where(FileStartsWithMagic);
+        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.xp3", SearchOption.AllDirectories).Where(FileStartsWithMagic);
 
         private static bool FileStartsWithMagic(string fileName)
         {
@@ -181,24 +161,22 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
 
         private class Entry
         {
-            List<Segment> _Segments = new List<Segment>();
-
             public bool Encrypted;
-            public List<Segment> Segments => _Segments;
             public uint Hash;
-            public uint Size;
             public bool IsCompressed;
-            public uint UnpackedSize;
-            public string Path;
             public long Offset;
+            public string Path;
+            public uint Size;
+            public uint UnpackedSize;
+            public List<Segment> Segments { get; } = new List<Segment>();
         }
 
         private sealed class Mapper
         {
-            Dictionary<uint, string> hashMap = new Dictionary<uint, string>();
-            Dictionary<string, string> md5Map = new Dictionary<string, string>();
-            MD5 md5Imp = MD5.Create();
-            StringBuilder md5String = new StringBuilder();
+            private readonly Dictionary<uint, string> hashMap = new Dictionary<uint, string>();
+            private readonly MD5 md5Imp = MD5.Create();
+            private readonly Dictionary<string, string> md5Map = new Dictionary<string, string>();
+            private readonly StringBuilder md5String = new StringBuilder();
 
             public int Count => md5Map.Count;
 
@@ -223,7 +201,7 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
             {
                 var md5 = md5Imp.ComputeHash(Encoding.Unicode.GetBytes(text.ToLower()));
                 md5String.Clear();
-                for (int i = 0; i < md5.Length; ++i)
+                for (var i = 0; i < md5.Length; ++i)
                     md5String.AppendFormat("{0:x2}", md5[i]);
                 return md5String.ToString();
             }
@@ -232,17 +210,76 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
         private class KirikiriFile : IExtractableFile
         {
             public string Path { get; }
-            private readonly byte[] file;
+            private readonly long offset;
+            private readonly uint size;
+            private readonly string sourceFile;
+            private readonly uint unpackedSize;
 
-            public KirikiriFile(string path, byte[] file)
+            public KirikiriFile(string path, long offset, uint size, uint unpackedSize, string sourceFile)
             {
                 Path = path;
-                this.file = file;
+                this.offset = offset;
+                this.size = size;
+                this.sourceFile = sourceFile;
+                this.unpackedSize = unpackedSize;
             }
 
             public void WriteToStream(Stream writeTo)
             {
-                writeTo.Write(file, 0, file.Length);
+                using (var fs = File.OpenRead(sourceFile))
+                using (var br = new BinaryReader(fs)) {
+                    fs.Seek(offset, SeekOrigin.Begin);
+                    var compressedBytes = br.ReadBytes((int) size);
+                    var uncompressedBytes = new byte[unpackedSize];
+                    if (size != unpackedSize)
+                        using (var ms = new MemoryStream(compressedBytes, 2, compressedBytes.Length - 2))
+                        using (var decStream = new DeflateStream(ms, CompressionMode.Decompress, true)) {
+                            decStream.Read(uncompressedBytes, 0, uncompressedBytes.Length);
+                        }
+                    else
+                        uncompressedBytes = compressedBytes;
+
+                    switch (System.IO.Path.GetExtension(Path)) {
+                        case ".png": {
+                            byte xorKey = (byte) (uncompressedBytes[1] ^ 'P');
+                            for (int i = 0; i < uncompressedBytes.Length; i++)
+                                uncompressedBytes[i] ^= xorKey;
+                            uncompressedBytes[0] = 0x89;
+                            uncompressedBytes[1] = (byte) 'P';
+                            break;
+                        }
+                        case ".ogg": {
+                            byte xorKey = (byte) (uncompressedBytes[1] ^ 'g');
+                            for (int i = 0; i < uncompressedBytes.Length; i++)
+                                uncompressedBytes[i] ^= xorKey;
+                            uncompressedBytes[0] = (byte) 'O';
+                            uncompressedBytes[1] = (byte) 'g';
+                            break;
+                        }
+                        case ".cur": {
+                            byte xorKey = uncompressedBytes[1];
+                            uncompressedBytes[0] = xorKey;
+                            for (int i = 0; i < uncompressedBytes.Length; i++)
+                                uncompressedBytes[i] ^= xorKey;
+                            break;
+                        }
+                        case ".ttf": {
+                            byte xorKey = uncompressedBytes[2];
+                            uncompressedBytes[0] = xorKey;
+                            for (int i = 0; i < uncompressedBytes.Length; i++)
+                                uncompressedBytes[i] ^= xorKey;
+                            break;
+                        }
+                        case ".tjs": case ".stage": case ".asd": case ".func": {
+                            byte xorKey = (byte) (uncompressedBytes[1] ^ 0xfe);
+                            for (int i = 0; i < uncompressedBytes.Length; i++)
+                                uncompressedBytes[i] ^= xorKey;
+                            break;
+                        }
+                    }
+
+                    writeTo.Write(uncompressedBytes, 0, uncompressedBytes.Length);
+                }
             }
         }
     }

@@ -16,7 +16,8 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
     {
         private const string FileMagic = "XP3\r";
 
-        public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) => GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
+        public IEnumerable<IExtractableFile> LoadFiles(string gameDirectory) =>
+            GetArchivesFromGameFolder(gameDirectory).SelectMany(LoadFilesFromArchive);
 
         public IEnumerable<IExtractableFile> LoadFilesFromArchive(string inputArchive)
         {
@@ -32,7 +33,7 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                 byte[] indexBytes;
                 fs.Seek(indexOffset, SeekOrigin.Begin);
                 bool isPacked = br.ReadBoolean();
-                if (!isPacked) 
+                if (!isPacked)
                     indexBytes = br.ReadBytes((int) br.ReadInt64());
                 else {
                     long compressedSize = br.ReadInt64();
@@ -45,19 +46,20 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                         decStream.Read(indexBytes, 0, (int) indexSize);
                     }
                 }
-                
+
                 var entries = new List<Entry>();
                 var fileOffset = 0;
-                
+
                 var Map = new Mapper();
                 using (var ms = new MemoryStream(indexBytes, 0, indexBytes.Length))
                 using (var mbr = new BinaryReader(ms, Encoding.Unicode)) {
                     while (mbr.PeekChar() != -1) {
                         var entryMagic = Encoding.ASCII.GetString(mbr.ReadBytes(4));
                         long entrySize = mbr.ReadInt64();
-    
-                        fileOffset += 12 + (int)entrySize;
-                        if (entryMagic == "File") { // File
+
+                        fileOffset += 12 + (int) entrySize;
+                        if (entryMagic == "File") {
+                            // File
                             var entry = new Entry();
                             while (entrySize > 0) {
                                 var sectionMagic = Encoding.ASCII.GetString(mbr.ReadBytes(4));
@@ -68,7 +70,7 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                                     if (sectionMagic == "info")
                                         sectionSize = entrySize;
                                 }
-    
+
                                 entrySize -= sectionSize;
                                 long nextSection = ms.Position + sectionSize;
                                 switch (sectionMagic) {
@@ -79,7 +81,7 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                                         entry.IsCompressed = fileSize != compressedSize;
                                         entry.Size = (uint) compressedSize;
                                         entry.UnpackedSize = (uint) fileSize;
-                                        
+
                                         string path = new string(mbr.ReadChars(mbr.ReadInt16()));
                                         if (Map.Count > 0)
                                             path = Map.GetFromMap(entry.Hash, path);
@@ -95,25 +97,29 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                                                 long segCompressedSize = mbr.ReadInt64();
                                                 entry.Segments.Add(new Segment {
                                                     Compressed = compressed,
-                                                    CompressedSize = (uint)segCompressedSize,
+                                                    CompressedSize = (uint) segCompressedSize,
                                                     Offset = segOffset,
                                                     Size = (uint) segSize
                                                 });
                                             }
+
                                             entry.Offset = entry.Segments.FirstOrDefault().Offset;
                                         }
+
                                         break;
                                     case "adlr":
                                         if (sectionSize == 4)
                                             entry.Hash = mbr.ReadUInt32();
                                         break;
                                 }
+
                                 ms.Seek(nextSection, SeekOrigin.Begin);
                             }
+
                             if (entry.Path != "")
                                 entries.Add(entry);
-                        }
-                        else if (entryMagic == "hnfn" || entryMagic == "smil" || entryMagic == "eliF" || entryMagic == "Yuzu" || entryMagic == "neko") {
+                        } else if (entryMagic == "hnfn" || entryMagic == "smil" || entryMagic == "eliF" || entryMagic == "Yuzu" ||
+                                   entryMagic == "neko") {
                             uint hash = mbr.ReadUInt32();
                             int nameLength = mbr.ReadInt16();
                             if (nameLength != 0) {
@@ -124,18 +130,35 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                                 }
                             }
                         }
-    
+
                         ms.Seek(fileOffset, SeekOrigin.Begin);
                     }
                 }
-                
+
+                foreach (Entry entry in entries) {
+                    // this check here is to prevent the program failing extracting "pseudo" files
+                    if (entry.Path.Length < 100) {
+                        fs.Seek(entry.Offset, SeekOrigin.Begin);
+                        byte[] compressedBytes = br.ReadBytes((int) entry.Size);
+                        byte[] uncompressedBytes = new byte[entry.UnpackedSize];
+                        if (entry.IsCompressed) {
+                            using (var ms = new MemoryStream(compressedBytes, 2, compressedBytes.Length - 2))
+                            using (var decStream = new DeflateStream(ms, CompressionMode.Decompress, true))
+                                decStream.Read(uncompressedBytes, 0, uncompressedBytes.Length);
+                        } else
+                            uncompressedBytes = compressedBytes;
+
+                        yield return new KirikiriFile(entry.Path, uncompressedBytes);
+                    }
+                }
             }
-            throw new NotImplementedException();
         }
 
-        public static bool IsGameFolder(string folder) => Directory.GetFiles(folder, "*.xp3", SearchOption.AllDirectories).Count(FileStartsWithMagic) > 0;
+        public static bool IsGameFolder(string folder) =>
+            Directory.GetFiles(folder, "*.xp3", SearchOption.AllDirectories).Count(FileStartsWithMagic) > 0;
 
-        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) => Directory.GetFiles(gameDirectory, "*.xp3", SearchOption.AllDirectories).Where(FileStartsWithMagic);
+        private IEnumerable<string> GetArchivesFromGameFolder(string gameDirectory) =>
+            Directory.GetFiles(gameDirectory, "*.xp3", SearchOption.AllDirectories).Where(FileStartsWithMagic);
 
         private static bool FileStartsWithMagic(string fileName)
         {
@@ -155,11 +178,11 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
             public uint Size;
             public uint CompressedSize;
         }
-        
+
         private class Entry
         {
             List<Segment> _Segments = new List<Segment>();
-            
+
             public bool Encrypted;
             public List<Segment> Segments => _Segments;
             public uint Hash;
@@ -178,14 +201,14 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
             StringBuilder md5String = new StringBuilder();
 
             public int Count => md5Map.Count;
-            
+
             public void AddToMap(uint hash, string file)
             {
                 if (!hashMap.ContainsKey(hash))
                     hashMap[hash] = file;
                 md5Map[GetHash(file)] = file;
             }
-            
+
             public string GetFromMap(uint hash, string md5)
             {
                 string file;
@@ -195,7 +218,7 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                     return file;
                 return md5;
             }
-            
+
             private string GetHash(string text)
             {
                 var md5 = md5Imp.ComputeHash(Encoding.Unicode.GetBytes(text.ToLower()));
@@ -203,6 +226,23 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                 for (int i = 0; i < md5.Length; ++i)
                     md5String.AppendFormat("{0:x2}", md5[i]);
                 return md5String.ToString();
+            }
+        }
+
+        private class KirikiriFile : IExtractableFile
+        {
+            public string Path { get; }
+            private readonly byte[] file;
+
+            public KirikiriFile(string path, byte[] file)
+            {
+                Path = path;
+                this.file = file;
+            }
+
+            public void WriteToStream(Stream writeTo)
+            {
+                writeTo.Write(file, 0, file.Length);
             }
         }
     }

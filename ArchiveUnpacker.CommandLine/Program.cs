@@ -67,7 +67,7 @@ namespace ArchiveUnpacker.CommandLine
                 return;
             }
 
-            foreach (IExtractableFile file in unpacker.LoadFiles(opt.Directory).OrderBy(x => x.Path))
+            foreach (IExtractableFile file in unpacker.LoadFiles(opt.Directory))
                 Console.WriteLine(file.Path);
         }
 

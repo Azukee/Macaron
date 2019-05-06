@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Security.Cryptography;
 using System.Text;
 using ArchiveUnpacker.Core;
@@ -239,7 +238,15 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                     else
                         uncompressedBytes = compressedBytes;
 
-                    switch (System.IO.Path.GetExtension(Path)) {
+                    GhettoDecrypt(System.IO.Path.GetExtension(Path), uncompressedBytes);
+
+                    writeTo.Write(uncompressedBytes, 0, uncompressedBytes.Length);
+                }
+            }
+
+            private static void GhettoDecrypt(string ext, byte[] uncompressedBytes)
+            {
+                switch (ext) {
                         case ".png": {
                             byte xorKey = (byte) (uncompressedBytes[1] ^ 'P');
                             for (int i = 0; i < uncompressedBytes.Length; i++)
@@ -277,9 +284,6 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                             break;
                         }
                     }
-
-                    writeTo.Write(uncompressedBytes, 0, uncompressedBytes.Length);
-                }
             }
         }
     }

@@ -69,12 +69,11 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                                 var nextSection = ms.Position + sectionSize;
                                 switch (sectionMagic) {
                                     case "info":
-                                        entry.Encrypted = 0 != mbr.ReadUInt32();
+                                        entry.Flags = mbr.ReadUInt32();
                                         var fileSize = mbr.ReadInt64();
                                         var compressedSize = mbr.ReadInt64();
-                                        entry.IsCompressed = fileSize != compressedSize;
-                                        entry.Size = (uint) compressedSize;
                                         entry.UnpackedSize = (uint) fileSize;
+                                        entry.Size = (uint) compressedSize;
 
                                         var path = new string(mbr.ReadChars(mbr.ReadInt16()));
                                         if (Map.Count > 0)
@@ -85,12 +84,12 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
                                         var segAmount = (int) (sectionSize / 28);
                                         if (segAmount > 0) {
                                             for (var i = 0; i < segAmount; i++) {
-                                                var compressed = 0 != mbr.ReadUInt32();
+                                                var flags = mbr.ReadUInt32();
                                                 var segOffset = mbr.ReadInt64();
                                                 var segSize = mbr.ReadInt64();
                                                 var segCompressedSize = mbr.ReadInt64();
                                                 entry.Segments.Add(new Segment {
-                                                    Compressed = compressed,
+                                                    Flags = flags,
                                                     CompressedSize = (uint) segCompressedSize,
                                                     Offset = segOffset,
                                                     Size = (uint) segSize
@@ -152,22 +151,25 @@ namespace ArchiveUnpacker.Unpackers.Unpackers
 
         private struct Segment
         {
-            public bool Compressed;
+            public uint Flags;
             public long Offset;
             public uint Size;
             public uint CompressedSize;
+
+            public bool IsCompressed => (Flags & 0b0111) > 0;
         }
 
         private class Entry
         {
-            public bool Encrypted;
+            public uint Flags;
             public uint Hash;
-            public bool IsCompressed;
             public long Offset;
             public string Path;
-            public uint Size;
-            public uint UnpackedSize;
+            public uint Size;            // ArcSize
+            public uint UnpackedSize;    // OrgSize
             public List<Segment> Segments { get; } = new List<Segment>();
+
+            public bool Encrypted => (Flags & (1 << 31)) > 0;
         }
 
         private sealed class Mapper
